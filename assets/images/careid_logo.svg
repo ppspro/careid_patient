@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#6D28D9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Cloud Outline -->
+  <path d="M 120 135 L 280 135 C 310 135 330 115 325 85 C 320 55 295 40 270 42 C 255 18 215 15 185 28 C 160 15 125 25 110 50 C 85 55 75 80 82 105 C 88 128 102 135 120 135 Z"
+        fill="#FFFFFF" stroke="url(#cloudGrad)" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" />
+
+  <!-- Red Medical Cross -->
+  <rect x="145" y="48" width="20" height="8" rx="2" fill="#EF4444" />
+  <rect x="151" y="42" width="8" height="20" rx="2" fill="#EF4444" />
+
+  <!-- Cyan Tooth Icon -->
+  <path d="M 195 44 C 190 44 186 48 188 54 C 190 60 192 68 194 68 C 196 68 197 62 199 62 C 201 62 202 68 204 68 C 206 68 208 60 210 54 C 212 48 208 44 203 44 Z" fill="#06B6D4" />
+
+  <!-- Orange Vision Eye -->
+  <ellipse cx="245" cy="52" rx="14" ry="9" fill="none" stroke="#F97316" stroke-width="3" />
+  <circle cx="245" cy="52" r="5" fill="#F97316" />
+
+  <!-- Center Digital Health Card -->
+  <rect x="150" y="75" width="100" height="52" rx="8" fill="#E0F2FE" stroke="#0284C7" stroke-width="2.5" />
+  <!-- Profile on card -->
+  <circle cx="172" cy="94" r="8" fill="#0284C7" />
+  <path d="M 160 114 C 160 106 166 104 172 104 C 178 104 184 106 184 114 Z" fill="#0284C7" />
+  <!-- Lines on card -->
+  <line x1="190" y1="90" x2="236" y2="90" stroke="#94A3B8" stroke-width="3" stroke-linecap="round" />
+  <line x1="190" y1="100" x2="226" y2="100" stroke="#94A3B8" stroke-width="3" stroke-linecap="round" />
+  <line x1="190" y1="110" x2="216" y2="110" stroke="#94A3B8" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Cyan Security Padlock -->
+  <rect x="230" y="98" width="16" height="14" rx="3" fill="#0284C7" />
+  <path d="M 233 98 L 233 92 C 233 88 243 88 243 92 L 243 98" fill="none" stroke="#0284C7" stroke-width="2.5" />
+
+  <!-- Wordmark "CareID" -->
+  <text x="135" y="195" font-family="Roboto, 'Segoe UI', sans-serif" font-weight="900" font-size="52" fill="#0F2547">Care</text>
+  <text x="245" y="195" font-family="Roboto, 'Segoe UI', sans-serif" font-weight="900" font-size="52" fill="url(#purpleGrad)">ID</text>
+
+  <!-- Fingerprint Motif inside letter 'D' -->
+  <path d="M 278 174 A 8 8 0 0 0 292 174 A 12 12 0 0 0 274 174 A 16 16 0 0 0 296 174"
+        fill="none" stroke="#00D2D3" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Tagline -->
+  <text x="200" y="222" font-family="Roboto, 'Segoe UI', sans-serif" font-weight="700" font-size="11" letter-spacing="3" fill="#64748B" text-anchor="middle">YOUR PROTECTED VITALITY</text>
+</svg>
