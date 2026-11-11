@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 
-import '../../lib/core/constants/api_endpoints.dart';
+import 'package:careid_patient_app/core/constants/api_endpoints.dart';
 
 void main() {
   group('ApiEndpoints Configuration', () {

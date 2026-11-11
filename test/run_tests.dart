@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../lib/core/config/app_config.dart';
-import '../lib/core/constants/api_endpoints.dart';
-import '../lib/core/network/api_result.dart';
-import '../lib/core/network/view_state.dart';
-import '../lib/core/storage/token_storage.dart';
-import '../lib/features/auth/data/models/auth_tokens.dart';
-import '../lib/features/auth/data/models/otp_models.dart';
-import '../lib/features/auth/data/models/patient_registration.dart';
-import '../lib/features/auth/data/models/register_patient_request.dart';
-import '../lib/features/auth/data/models/registration_context.dart';
-import '../lib/features/onboarding/data/models/health_info_models.dart';
-import '../lib/features/onboarding/data/models/insurance_models.dart';
+import 'package:careid_patient_app/core/config/app_config.dart';
+import 'package:careid_patient_app/core/constants/api_endpoints.dart';
+import 'package:careid_patient_app/core/network/api_result.dart';
+import 'package:careid_patient_app/core/network/view_state.dart';
+import 'package:careid_patient_app/core/storage/token_storage.dart';
+import 'package:careid_patient_app/features/auth/data/models/auth_tokens.dart';
+import 'package:careid_patient_app/features/auth/data/models/otp_models.dart';
+import 'package:careid_patient_app/features/auth/data/models/patient_registration.dart';
+import 'package:careid_patient_app/features/auth/data/models/register_patient_request.dart';
+import 'package:careid_patient_app/features/auth/data/models/registration_context.dart';
+import 'package:careid_patient_app/features/onboarding/data/models/health_info_models.dart';
+import 'package:careid_patient_app/features/onboarding/data/models/insurance_models.dart';
 
 void main() async {
   int passed = 0;
@@ -259,7 +259,7 @@ void main() async {
 
   // 8. OTP DTO Request & Response Serialization
   stdout.writeln('\n[SUITE 8] OTP DTO Request & Response Serialization:');
-  final otpReqDto = RequestOtpDto(phone: '(415) 555-2671');
+  const otpReqDto = RequestOtpDto(phone: '(415) 555-2671');
   expect(
     otpReqDto.toJson()['phone'] == '+14155552671',
     'RequestOtpDto normalizes phone to E.164 in JSON payload',
@@ -282,7 +282,7 @@ void main() async {
     'RequestOtpResponseDto parses message',
   );
 
-  final verifyDto = VerifyOtpDto(
+  const verifyDto = VerifyOtpDto(
     challengeId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
     otpCode: '654321',
   );
@@ -321,7 +321,7 @@ void main() async {
     'VerifyOtpResponseDto redacts tokens in toString()',
   );
 
-  final resendDto = ResendOtpDto(
+  const resendDto = ResendOtpDto(
     challengeId: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
   );
   expect(
@@ -363,7 +363,7 @@ void main() async {
 
   // 10. Demographics DTO Request & Response Serialization
   stdout.writeln('\n[SUITE 10] Demographics DTO Serialization:');
-  final demoDto = DemographicsDto(
+  const demoDto = DemographicsDto(
     firstName: 'Jane',
     lastName: 'Doe',
     dateOfBirth: '1992-04-12',
@@ -403,7 +403,7 @@ void main() async {
 
   // 11. Emergency Contact DTO Serialization & Phone Normalization
   stdout.writeln('\n[SUITE 11] Emergency Contact DTO Serialization:');
-  final ecDto = EmergencyContactDto(
+  const ecDto = EmergencyContactDto(
     name: 'Robert Doe',
     relationship: 'Brother',
     phone: '(555) 234-5678',
@@ -431,7 +431,7 @@ void main() async {
 
   // 12. Medical Summary DTO Serialization & Array Handling
   stdout.writeln('\n[SUITE 12] Medical Summary DTO Serialization:');
-  final medDto = MedicalSummaryDto(
+  const medDto = MedicalSummaryDto(
     bloodGroup: 'A+',
     knownAllergies: ['Penicillin (Mild rash)', 'Peanuts'],
     chronicConditions: ['Asthma', 'High Blood Pressure'],
@@ -471,7 +471,7 @@ void main() async {
 
   // 13. Health Items & Models Serialization
   stdout.writeln('\n[SUITE 13] Health Items & Models Serialization:');
-  final medItem = MedicationItem(
+  const medItem = MedicationItem(
     id: 'm1',
     name: 'Metformin 500mg',
     dosage: '1 tablet twice daily',
@@ -486,7 +486,7 @@ void main() async {
     'MedicationItem deserializes',
   );
 
-  final allergyItem = AllergyItem(
+  const allergyItem = AllergyItem(
     id: 'a1',
     name: 'Penicillin',
     reaction: 'Mild rash',
@@ -501,7 +501,7 @@ void main() async {
     'AllergyItem formats displayTag without reaction',
   );
 
-  final surgItem = SurgeryProcedureItem(
+  const surgItem = SurgeryProcedureItem(
     id: 's1',
     name: 'Appendectomy',
     year: '2019',
@@ -746,7 +746,7 @@ void main() async {
     'InsuranceOcrScanDto serializes correctly for POST /api/v1/insurance/ocr/scan',
   );
 
-  final ocrConfirmDto = InsuranceOcrConfirmDto(
+  const ocrConfirmDto = InsuranceOcrConfirmDto(
     ocrId: 'ocr-task-uuid-v4',
     confirmedData: basicInsurance,
   );
@@ -761,14 +761,14 @@ void main() async {
   stdout.writeln(
     '\n[SUITE 19] Phase 5 RegistrationContext Step 4 State Machine & Handoff:',
   );
-  final step3Context = RegistrationContext(
+  const step3Context = RegistrationContext(
     fullName: 'Jane Doe',
     phone: '+14155552671',
     email: 'jane.doe@example.com',
     onboardingStep: 3,
     bloodGroup: 'O+',
-    knownAllergies: const ['Penicillin'],
-    chronicConditions: const ['Hypertension'],
+    knownAllergies: ['Penicillin'],
+    chronicConditions: ['Hypertension'],
   );
 
   final step4SavedContext = step3Context.copyWith(

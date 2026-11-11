@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Star 1">
+<rect width="44" height="44" rx="22" fill="#EFF4FF"/>
+<mask id="stroke0_602_62" fill="white">
+<path d="M22 10L25.3374 18.437L34 19.1672L27.4 25.1117L29.4164 34L22 29.237L14.5836 34L16.6 25.1117L10 19.1672L18.6626 18.437L22 10Z"/>
+</mask>
+<path id="Icon" d="M22 10L25.3374 18.437L34 19.1672L27.4 25.1117L29.4164 34L22 29.237L14.5836 34L16.6 25.1117L10 19.1672L18.6626 18.437L22 10Z" stroke-width="3" stroke-linejoin="round" stroke="#28006D" mask="url(#stroke0_602_62)"/>
+</g>
+</svg>

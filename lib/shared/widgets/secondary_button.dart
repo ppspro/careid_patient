@@ -13,10 +13,11 @@ class SecondaryButton extends StatelessWidget {
 
   const SecondaryButton({
     super.key,
-    required this.label,
+    String? label,
+    String? text,
     this.onPressed,
     this.isLoading = false,
-  });
+  }) : label = label ?? text ?? '';
 
   @override
   Widget build(BuildContext context) {

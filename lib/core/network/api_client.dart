@@ -28,6 +28,8 @@ class ApiClient {
        _httpClient = httpClient ?? http.Client(),
        _tokenStorage = tokenStorage;
 
+  TokenStorage? get tokenStorage => _tokenStorage;
+
   Uri _buildUri(String path, [Map<String, String>? queryParams]) {
     final cleanBase = baseUrl.endsWith('/')
         ? baseUrl.substring(0, baseUrl.length - 1)
@@ -44,8 +46,9 @@ class ApiClient {
       'User-Agent': 'CareID-PatientApp/1.0.0',
     };
 
-    if (requiresAuth && _tokenStorage != null) {
-      final token = await _tokenStorage.getAccessToken();
+    final storage = _tokenStorage;
+    if (requiresAuth && storage != null) {
+      final token = await storage.getAccessToken();
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
       }
@@ -254,13 +257,129 @@ class ApiClient {
     }
   }
 
+  /// Perform a DELETE request
+  Future<ApiResult<T>> delete<T>(
+    String path, {
+    dynamic body,
+    bool requiresAuth = false,
+    T Function(dynamic json)? fromJson,
+  }) async {
+    try {
+      final uri = _buildUri(path);
+      final headers = await _getHeaders(requiresAuth: requiresAuth);
+
+      final response = await _httpClient
+          .delete(
+            uri,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(AppConfig.connectTimeout);
+
+      if (response.statusCode == 401 && requiresAuth) {
+        final refreshed = await _attemptTokenRefresh();
+        if (refreshed) {
+          final newHeaders = await _getHeaders(requiresAuth: true);
+          final retryResponse = await _httpClient
+              .delete(
+                uri,
+                headers: newHeaders,
+                body: body != null ? jsonEncode(body) : null,
+              )
+              .timeout(AppConfig.connectTimeout);
+          return _handleResponse<T>(retryResponse, fromJson);
+        } else {
+          _handleUnauthorized();
+        }
+      }
+
+      return _handleResponse<T>(response, fromJson);
+    } on TimeoutException {
+      return ApiFailure<T>(
+        message: 'Connection timed out. Please check your network connection.',
+        statusCode: 408,
+      );
+    } on SocketException catch (e) {
+      return ApiFailure<T>(
+        message: 'Network error: Unable to reach CareID server.',
+        error: e,
+      );
+    } catch (e) {
+      return ApiFailure<T>(message: 'Unexpected network error: $e', error: e);
+    }
+  }
+
+  /// Sends a multipart/form-data POST request with form fields and/or files.
+  /// Automatically sets the proper Content-Type boundary header.
+  Future<ApiResult<T>> postMultipart<T>(
+    String path, {
+    Map<String, String>? fields,
+    List<http.MultipartFile>? files,
+    bool requiresAuth = false,
+    T Function(dynamic json)? fromJson,
+  }) async {
+    try {
+      final uri = _buildUri(path);
+      final request = http.MultipartRequest('POST', uri);
+
+      final headers = await _getHeaders(requiresAuth: requiresAuth);
+      headers.remove('Content-Type'); // Allow MultipartRequest to generate boundary
+      request.headers.addAll(headers);
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+      if (files != null) {
+        request.files.addAll(files);
+      }
+
+      final streamedResponse =
+          await request.send().timeout(AppConfig.connectTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 401 && requiresAuth) {
+        final refreshed = await _attemptTokenRefresh();
+        if (refreshed) {
+          final retryRequest = http.MultipartRequest('POST', uri);
+          final newHeaders = await _getHeaders(requiresAuth: true);
+          newHeaders.remove('Content-Type');
+          retryRequest.headers.addAll(newHeaders);
+          if (fields != null) retryRequest.fields.addAll(fields);
+          if (files != null) retryRequest.files.addAll(files);
+
+          final retryStreamed =
+              await retryRequest.send().timeout(AppConfig.connectTimeout);
+          final retryResponse = await http.Response.fromStream(retryStreamed);
+          return _handleResponse<T>(retryResponse, fromJson);
+        } else {
+          _handleUnauthorized();
+        }
+      }
+
+      return _handleResponse<T>(response, fromJson);
+    } on TimeoutException {
+      return ApiFailure<T>(
+        message: 'Connection timed out. Please check your network connection.',
+        statusCode: 408,
+      );
+    } on SocketException catch (e) {
+      return ApiFailure<T>(
+        message: 'Network error: Unable to reach CareID server.',
+        error: e,
+      );
+    } catch (e) {
+      return ApiFailure<T>(message: 'Unexpected network error: $e', error: e);
+    }
+  }
+
   /// Attempts to refresh access token using refresh token
   Future<bool> _attemptTokenRefresh() async {
-    if (_tokenStorage == null || _isRefreshing) return false;
+    final storage = _tokenStorage;
+    if (storage == null || _isRefreshing) return false;
 
     _isRefreshing = true;
     try {
-      final refreshToken = await _tokenStorage.getRefreshToken();
+      final refreshToken = await storage.getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) return false;
 
       final uri = _buildUri(ApiEndpoints.tokenRefresh);
@@ -285,7 +404,7 @@ class ApiClient {
         final newRefresh = payload['refreshToken'] as String? ?? refreshToken;
 
         if (newAccess != null) {
-          await _tokenStorage.saveTokens(
+          await storage.saveTokens(
             accessToken: newAccess,
             refreshToken: newRefresh,
           );

@@ -33,80 +33,69 @@ class RegistrationRepository {
 
     try {
       final client = _apiClient ?? ApiClient();
+      final token = await client.tokenStorage?.getAccessToken();
+      final hasToken = token != null && token.isNotEmpty;
 
-      // Step 1: Attempt direct draft patient profile registration
-      final registerResult = await client.post<PatientRegistrationDraft>(
-        ApiEndpoints.patientRegisterDraft,
-        body: request.toJson(),
-        fromJson: (json) => PatientRegistrationDraft.fromJson(
-          json is Map<String, dynamic> ? json : <String, dynamic>{},
-        ),
-      );
-
-      // If successful (HTTP 201 Created), construct RegistrationContext and return
-      if (registerResult.isSuccess) {
-        final draft = registerResult.dataOrNull;
-        _isInFlight = false;
-        return ApiSuccess(
-          data: RegistrationContext(
-            fullName: request.fullName,
-            phone: request.phone,
-            email: request.email,
-            profileId: draft?.profileId,
-            patientNumber: draft?.patientNumber,
-            status: draft?.status ?? 'DRAFT',
-            onboardingStep: draft?.onboardingStep ?? 1,
+      // If already authenticated with active Bearer session, initialize draft directly
+      if (hasToken) {
+        final registerResult = await client.post<PatientRegistrationDraft>(
+          ApiEndpoints.patientRegisterDraft,
+          requiresAuth: true,
+          fromJson: (json) => PatientRegistrationDraft.fromJson(
+            json is Map<String, dynamic> ? json : <String, dynamic>{},
           ),
-          message: registerResult.messageOrNull,
-        );
-      }
-
-      // Step 2: Handle HTTP 401 Unauthorized
-      // Per OpenAPI and backend analysis, /api/v1/patients/register requires a Bearer JWT
-      // if user authentication precedes profile creation.
-      // In this flow, we initiate mobile OTP verification challenge.
-      final failure = registerResult as ApiFailure<PatientRegistrationDraft>;
-      if (failure.statusCode == 401) {
-        final otpResult = await client.post<Map<String, dynamic>>(
-          ApiEndpoints.otpRequest,
-          body: {'phone': request.phone},
         );
 
-        _isInFlight = false;
-
-        if (otpResult.isSuccess) {
-          final otpData = otpResult.dataOrNull ?? <String, dynamic>{};
-          final challengeId = otpData['challengeId']?.toString();
+        if (registerResult.isSuccess) {
+          final draft = registerResult.dataOrNull;
+          _isInFlight = false;
           return ApiSuccess(
             data: RegistrationContext(
               fullName: request.fullName,
               phone: request.phone,
               email: request.email,
-              status: 'OTP_PENDING',
-              onboardingStep: 2,
-              challengeId: challengeId,
+              profileId: draft?.profileId,
+              patientNumber: draft?.patientNumber,
+              status: draft?.status ?? 'DRAFT',
+              onboardingStep: draft?.onboardingStep ?? 1,
             ),
-            message:
-                otpResult.messageOrNull ??
-                'Verification code dispatched to your mobile number.',
-          );
-        } else {
-          final otpFailure = otpResult as ApiFailure<Map<String, dynamic>>;
-          return ApiFailure(
-            message:
-                'Authentication session required. OTP service error: ${otpFailure.message}',
-            statusCode: otpFailure.statusCode,
-            error: otpFailure.error,
+            message: registerResult.messageOrNull,
           );
         }
       }
 
-      _isInFlight = false;
-      return ApiFailure(
-        message: failure.message,
-        statusCode: failure.statusCode,
-        error: failure.error,
+      // Initial Patient Registration begins with phone OTP challenge dispatch
+      final otpResult = await client.post<Map<String, dynamic>>(
+        ApiEndpoints.otpRequest,
+        body: {'phone': request.phone},
       );
+
+      _isInFlight = false;
+
+      if (otpResult.isSuccess) {
+        final otpData = otpResult.dataOrNull ?? <String, dynamic>{};
+        final challengeId = otpData['challengeId']?.toString();
+        return ApiSuccess(
+          data: RegistrationContext(
+            fullName: request.fullName,
+            phone: request.phone,
+            email: request.email,
+            status: 'OTP_PENDING',
+            onboardingStep: 2,
+            challengeId: challengeId,
+          ),
+          message:
+              otpResult.messageOrNull ??
+              'Verification code dispatched to your mobile number.',
+        );
+      } else {
+        final otpFailure = otpResult as ApiFailure<Map<String, dynamic>>;
+        return ApiFailure(
+          message: otpFailure.message,
+          statusCode: otpFailure.statusCode,
+          error: otpFailure.error,
+        );
+      }
     } catch (e) {
       _isInFlight = false;
       return ApiFailure(

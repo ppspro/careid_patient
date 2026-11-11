@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 
-import '../../lib/core/network/api_result.dart';
+import 'package:careid_patient_app/core/network/api_result.dart';
 
 void main() {
   group('ApiResult Pattern Matching and State', () {

@@ -7,6 +7,12 @@ analyzer:
     missing_required_param: error
     missing_return: error
     todo: ignore
+    deprecated_member_use: ignore
+  exclude:
+    - build/**
+    - android/**
+    - Care_ID_Patient_App-main/**
+    - lib/firebase_options.dart
 
 linter:
   rules:

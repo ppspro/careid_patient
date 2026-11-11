@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 
-import '../../lib/core/config/app_config.dart';
-import '../../lib/core/network/api_client.dart';
+import 'package:careid_patient_app/core/config/app_config.dart';
+import 'package:careid_patient_app/core/network/api_client.dart';
 
 void main() {
   group('Live CareID Backend Integration Test', () {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import 'careid_dental_logo.dart';
 
 enum ServiceType { medical, dental, vision, pets }
 
@@ -78,7 +79,9 @@ class ServiceFeatureCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(
-                    child: Icon(_iconData, color: _iconColor, size: 26),
+                    child: type == ServiceType.dental
+                        ? CareIdDentalLogo(size: 26, color: _iconColor)
+                        : Icon(_iconData, color: _iconColor, size: 26),
                   ),
                 ),
                 const SizedBox(width: 16),

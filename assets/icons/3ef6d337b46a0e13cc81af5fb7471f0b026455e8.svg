@@ -1,0 +1,24 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="68" height="12" viewBox="0 0 68 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Stars">
+<mask id="stroke0_602_25" fill="white">
+<path d="M6 0L7.66869 4.21848L12 4.58359L8.7 7.55587L9.7082 12L6 9.61848L2.2918 12L3.3 7.55587L0 4.58359L4.33131 4.21848L6 0Z"/>
+</mask>
+<path id="Star" d="M6 0L7.66869 4.21848L12 4.58359L8.7 7.55587L9.7082 12L6 9.61848L2.2918 12L3.3 7.55587L0 4.58359L4.33131 4.21848L6 0Z" stroke-width="2" stroke-linejoin="round" stroke="#7D7591" mask="url(#stroke0_602_25)"/>
+<mask id="stroke1_602_25" fill="white">
+<path d="M20 0L21.6687 4.21848L26 4.58359L22.7 7.55587L23.7082 12L20 9.61848L16.2918 12L17.3 7.55587L14 4.58359L18.3313 4.21848L20 0Z"/>
+</mask>
+<path id="Star_2" d="M20 0L21.6687 4.21848L26 4.58359L22.7 7.55587L23.7082 12L20 9.61848L16.2918 12L17.3 7.55587L14 4.58359L18.3313 4.21848L20 0Z" stroke-width="2" stroke-linejoin="round" stroke="#7D7591" mask="url(#stroke1_602_25)"/>
+<mask id="stroke2_602_25" fill="white">
+<path d="M34 0L35.6687 4.21848L40 4.58359L36.7 7.55587L37.7082 12L34 9.61848L30.2918 12L31.3 7.55587L28 4.58359L32.3313 4.21848L34 0Z"/>
+</mask>
+<path id="Star_3" d="M34 0L35.6687 4.21848L40 4.58359L36.7 7.55587L37.7082 12L34 9.61848L30.2918 12L31.3 7.55587L28 4.58359L32.3313 4.21848L34 0Z" stroke-width="2" stroke-linejoin="round" stroke="#7D7591" mask="url(#stroke2_602_25)"/>
+<mask id="stroke3_602_25" fill="white">
+<path d="M48 0L49.6687 4.21848L54 4.58359L50.7 7.55587L51.7082 12L48 9.61848L44.2918 12L45.3 7.55587L42 4.58359L46.3313 4.21848L48 0Z"/>
+</mask>
+<path id="Star_4" d="M48 0L49.6687 4.21848L54 4.58359L50.7 7.55587L51.7082 12L48 9.61848L44.2918 12L45.3 7.55587L42 4.58359L46.3313 4.21848L48 0Z" stroke-width="2" stroke-linejoin="round" stroke="#7D7591" mask="url(#stroke3_602_25)"/>
+<mask id="stroke4_602_25" fill="white">
+<path d="M62 0L63.6687 4.21848L68 4.58359L64.7 7.55587L65.7082 12L62 9.61848L58.2918 12L59.3 7.55587L56 4.58359L60.3313 4.21848L62 0Z"/>
+</mask>
+<path id="Star_5" d="M62 0L63.6687 4.21848L68 4.58359L64.7 7.55587L65.7082 12L62 9.61848L58.2918 12L59.3 7.55587L56 4.58359L60.3313 4.21848L62 0Z" stroke-width="2" stroke-linejoin="round" stroke="#7D7591" mask="url(#stroke4_602_25)"/>
+</g>
+</svg>

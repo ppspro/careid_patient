@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../../../../core/network/api_result.dart';
-import '../../../../core/storage/token_storage.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/careid_logo.dart';
@@ -91,7 +89,6 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
   // Submission & Error State
   bool _isSaving = false;
   String? _errorMessage;
-  String? _successMessage;
 
   @override
   void initState() {
@@ -101,7 +98,7 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
         widget.onboardingRepository ??
         OnboardingRepository(
           apiClient: widget.apiClient,
-          tokenStorage: InMemoryTokenStorage(),
+          tokenStorage: widget.apiClient?.tokenStorage,
         );
 
     // Hydrate from RegistrationContext if available
@@ -268,7 +265,7 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: category,
+                      initialValue: category,
                       decoration: InputDecoration(
                         labelText: _isEn ? 'Category' : 'Categoría',
                         border: OutlineInputBorder(
@@ -546,7 +543,6 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
     setState(() {
       _isSaving = true;
       _errorMessage = null;
-      _successMessage = null;
     });
 
     // Compile active allergies
@@ -617,11 +613,6 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
 
     result.when(
       success: (data, message) {
-        setState(() {
-          _successMessage = _isEn
-              ? 'Health profile saved successfully.'
-              : 'Perfil de salud guardado con éxito.';
-        });
         _navigateToNextStep(updatedContext);
       },
       failure: (message, statusCode, error) {
@@ -677,7 +668,7 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
                       ),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const CareIdLogo(size: 64),
+                    const CareIdLogo.horizontal(height: 18),
                     LanguageToggle(
                       currentLanguage: _currentLanguage,
                       onLanguageChanged: (String lang) =>
@@ -704,17 +695,20 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                _isEn
-                                    ? 'VERIFICATION STEP'
-                                    : 'PASO DE VERIFICACIÓN',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: AppColors.purplePrimary,
+                              Expanded(
+                                child: Text(
+                                  _isEn
+                                      ? 'VERIFICATION STEP'
+                                      : 'PASO DE VERIFICACIÓN',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.8,
+                                    color: AppColors.purplePrimary,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 _isEn ? 'Step 3 of 6' : 'Paso 3 de 6',
                                 style: const TextStyle(
@@ -1007,12 +1001,15 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
                                               color: AppColors.purplePrimary,
                                             ),
                                             const SizedBox(width: 6),
-                                            Text(
-                                              allergy.displayTag,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.purplePrimary,
+                                            Flexible(
+                                              child: Text(
+                                                allergy.displayTag,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.purplePrimary,
+                                                ),
                                               ),
                                             ),
                                             const SizedBox(width: 6),
@@ -1498,8 +1495,9 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               const Icon(
                                 Icons.lock_outline_rounded,
@@ -1511,6 +1509,7 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
                                 _isEn
                                     ? 'Encrypted & HIPAA Compliant Storage'
                                     : 'Almacenamiento Cifrado y Seguro',
+                                textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.textTertiary,
@@ -1673,14 +1672,17 @@ class _HealthInfoScreenState extends State<HealthInfoScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
+              const SizedBox(width: 4),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,

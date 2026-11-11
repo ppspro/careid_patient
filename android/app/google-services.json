@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "641279029855",
+    "project_id": "careid-5e423",
+    "storage_bucket": "careid-5e423.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:641279029855:android:67b5fe006271f64c0661ea",
+        "android_client_info": {
+          "package_name": "com.careid.careid_patient_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO7vZt10Nsy7S3kEZhlrPdTYBaQyHmSlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

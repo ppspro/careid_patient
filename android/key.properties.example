@@ -1,0 +1,9 @@
+# CareID Production Android Signing Configuration Template
+# Copy this file to `android/key.properties` and replace with your secure keystore credentials.
+# NOTE: Never commit `key.properties` or `.jks` / `.keystore` files to source control.
+
+storePassword=YOUR_KEYSTORE_PASSWORD_HERE
+keyPassword=YOUR_KEY_PASSWORD_HERE
+keyAlias=careid_release_key
+storeFile=C:/path/to/careid_release_key.jks
+

@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 
-import '../../lib/features/auth/data/models/auth_tokens.dart';
-import '../../lib/features/auth/data/models/patient_registration.dart';
+import 'package:careid_patient_app/features/auth/data/models/auth_tokens.dart';
+import 'package:careid_patient_app/features/auth/data/models/patient_registration.dart';
 
 void main() {
   group('CareID Domain Models Deserialization', () {

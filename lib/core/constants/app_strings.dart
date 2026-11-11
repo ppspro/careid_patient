@@ -44,4 +44,48 @@ class AppStrings {
   // Language labels
   static const String langEn = 'EN';
   static const String langEs = 'ESP';
+
+  // Privacy & Consents (Figma 20:31164)
+  static const String privacyHeadingEn = 'Your privacy & consents';
+  static const String privacyHeadingEs = 'Tu privacidad y consentimientos';
+  static const String privacySubtitleEn =
+      'You control how your health information is stored, accessed, and shared through Care ID.';
+  static const String privacySubtitleEs =
+      'Tú controlas cómo se almacena, accede y comparte tu información médica a través de Care ID.';
+
+  // Confirmed Screen (Figma 20:31401)
+  static const String step6Of6En = 'Step 6 of 6';
+  static const String step6Of6Es = 'Paso 6 de 6';
+  static const String completeBadgeEn = 'Complete';
+  static const String completeBadgeEs = 'Completado';
+
+  static const String vaultActiveBadgeEn = 'Care ID Cryptographic Vault Active';
+  static const String vaultActiveBadgeEs =
+      'Bóveda Criptográfica Care ID Activa';
+
+  static const String confirmedHeadingEn = 'Your Care ID Vault is ready';
+  static const String confirmedHeadingEs = 'Tu bóveda Care ID está lista';
+  static const String confirmedSubtitleEn =
+      'Your personal cryptographic vault has been initialized. You now have full sovereign ownership over your verifiable healthcare identity.';
+  static const String confirmedSubtitleEs =
+      'Tu bóveda criptográfica personal ha sido inicializada. Ahora tienes control soberano total sobre tu identidad médica verificable.';
+
+  static const String digitalCredentialTitleEn = 'Care ID Digital Credential';
+  static const String digitalCredentialTitleEs =
+      'Credencial Digital de Care ID';
+  static const String hipaaSecuredTagEn = 'HIPAA Secured';
+  static const String hipaaSecuredTagEs = 'Seguro HIPAA';
+
+  static const String vaultDisciplinesHeadingEn = 'Your Care ID Vault';
+  static const String vaultDisciplinesHeadingEs = 'Tu Bóveda Care ID';
+  static const String vaultDisciplinesSubtitleEn =
+      'Your unified personal health repository across four core disciplines:';
+  static const String vaultDisciplinesSubtitleEs =
+      'Tu repositorio personal de salud unificado en cuatro disciplinas principales:';
+
+  static const String enterCareIdEn = 'Enter Care ID';
+  static const String enterCareIdEs = 'Entrar a Care ID';
+  static const String shareDigitalHealthCardEn = 'Share Digital Health Card';
+  static const String shareDigitalHealthCardEs =
+      'Compartir Tarjeta Digital de Salud';
 }

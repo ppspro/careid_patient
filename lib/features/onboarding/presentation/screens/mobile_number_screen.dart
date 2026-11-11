@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/careid_logo.dart';
 import '../../../../shared/widgets/language_toggle.dart';
@@ -309,14 +308,16 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              _isEn
-                                  ? 'Mobile Verification'
-                                  : 'Verificación móvil',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.purplePrimary,
+                            Expanded(
+                              child: Text(
+                                _isEn
+                                    ? 'Mobile Verification'
+                                    : 'Verificación móvil',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.purplePrimary,
+                                ),
                               ),
                             ),
                             const Text(
@@ -461,9 +462,9 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                                   color: const Color(0xFFE9D5FF),
                                 ),
                               ),
-                              child: Row(
+                              child: const Row(
                                 mainAxisSize: MainAxisSize.min,
-                                children: const [
+                                children: [
                                   Icon(
                                     Icons.sms_outlined,
                                     size: 14,
@@ -489,12 +490,14 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Verification Code',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
+                            const Expanded(
+                              child: Text(
+                                'Verification Code',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                             ),
                             Row(
@@ -810,37 +813,40 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                         const SizedBox(height: 20),
 
                         // Support Footer Action (Figma Node 20:30886)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Need help? ',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'CareID Patient Support: support@careid.health',
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                'Contact Care ID Support',
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Need help? ',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.purplePrimary,
-                                  decoration: TextDecoration.underline,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
-                            ),
-                          ],
+                              GestureDetector(
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'CareID Patient Support: support@careid.health',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Contact Care ID Support',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.purplePrimary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 24),
                       ],

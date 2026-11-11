@@ -1,0 +1,2270 @@
+[
+  {
+    "folder": "01. Environment & Health Checks",
+    "name": "Platform Health Check",
+    "method": "GET",
+    "path": "/api/v1/health",
+    "raw": "{{baseUrl}}/api/v1/health"
+  },
+  {
+    "folder": "01. Environment & Health Checks",
+    "name": "Platform Readiness Probe",
+    "method": "GET",
+    "path": "/api/v1/ready",
+    "raw": "{{baseUrl}}/api/v1/ready"
+  },
+  {
+    "folder": "01. Environment & Health Checks",
+    "name": "Platform Liveness Probe",
+    "method": "GET",
+    "path": "/api/v1/live",
+    "raw": "{{baseUrl}}/api/v1/live"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "CareID Admin/Super Admin Password Login",
+    "method": "POST",
+    "path": "/api/v1/auth/password/login",
+    "raw": "{{baseUrl}}/api/v1/auth/password/login"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "Admin Email/Password Login (Legacy Alias)",
+    "method": "POST",
+    "path": "/api/v1/auth/admin/login",
+    "raw": "{{baseUrl}}/api/v1/auth/admin/login"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "Request Phone OTP",
+    "method": "POST",
+    "path": "/api/v1/auth/otp/request",
+    "raw": "{{baseUrl}}/api/v1/auth/otp/request"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "Verify Phone OTP & Login",
+    "method": "POST",
+    "path": "/api/v1/auth/otp/verify",
+    "raw": "{{baseUrl}}/api/v1/auth/otp/verify"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "Resend OTP to registered phone number",
+    "method": "POST",
+    "path": "/api/v1/auth/otp/resend",
+    "raw": "{{baseUrl}}/api/v1/auth/otp/resend"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "Refresh JWT Access Token",
+    "method": "POST",
+    "path": "/api/v1/auth/token/refresh",
+    "raw": "{{baseUrl}}/api/v1/auth/token/refresh"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "User Session Logout",
+    "method": "POST",
+    "path": "/api/v1/auth/logout",
+    "raw": "{{baseUrl}}/api/v1/auth/logout"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "Logout all devices and revoke all tokens",
+    "method": "POST",
+    "path": "/api/v1/auth/logout-all",
+    "raw": "{{baseUrl}}/api/v1/auth/logout-all"
+  },
+  {
+    "folder": "02. Authentication & OTP",
+    "name": "Change authenticated user password",
+    "method": "POST",
+    "path": "/api/v1/auth/password/change",
+    "raw": "{{baseUrl}}/api/v1/auth/password/change"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "Get current user profile and claims",
+    "method": "GET",
+    "path": "/api/v1/auth/me",
+    "raw": "{{baseUrl}}/api/v1/auth/me"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "Update current user profile",
+    "method": "PUT",
+    "path": "/api/v1/auth/me",
+    "raw": "{{baseUrl}}/api/v1/auth/me"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "Partially update current user profile",
+    "method": "PATCH",
+    "path": "/api/v1/auth/me",
+    "raw": "{{baseUrl}}/api/v1/auth/me"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "List active sessions for authenticated user",
+    "method": "GET",
+    "path": "/api/v1/auth/sessions",
+    "raw": "{{baseUrl}}/api/v1/auth/sessions"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "Terminate all other active sessions",
+    "method": "DELETE",
+    "path": "/api/v1/auth/sessions",
+    "raw": "{{baseUrl}}/api/v1/auth/sessions"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "Terminate a specific active session",
+    "method": "DELETE",
+    "path": "/api/v1/auth/sessions/:sessionId",
+    "raw": "{{baseUrl}}/api/v1/auth/sessions/:sessionId"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "Get current user assigned roles",
+    "method": "GET",
+    "path": "/api/v1/auth/roles",
+    "raw": "{{baseUrl}}/api/v1/auth/roles"
+  },
+  {
+    "folder": "03. User Profile & Account",
+    "name": "Get current user assigned permissions",
+    "method": "GET",
+    "path": "/api/v1/auth/permissions",
+    "raw": "{{baseUrl}}/api/v1/auth/permissions"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 1: Initialize Patient Draft Registration",
+    "method": "POST",
+    "path": "/api/v1/patients/register",
+    "raw": "{{baseUrl}}/api/v1/patients/register"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Check Draft Registration Progress Status",
+    "method": "GET",
+    "path": "/api/v1/patients/register/status",
+    "raw": "{{baseUrl}}/api/v1/patients/register/status"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Resume and update registration progress",
+    "method": "PATCH",
+    "path": "/api/v1/patients/register/resume",
+    "raw": "{{baseUrl}}/api/v1/patients/register/resume?step=string"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 2: Patient Demographic Registration",
+    "method": "POST",
+    "path": "/api/v1/patients/onboarding/demographics",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/demographics"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 2: Update Demographics Details",
+    "method": "PUT",
+    "path": "/api/v1/patients/onboarding/demographics",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/demographics"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 3: Save Emergency Contact",
+    "method": "POST",
+    "path": "/api/v1/patients/onboarding/emergency-contact",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/emergency-contact"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 3: Update Emergency Contact",
+    "method": "PUT",
+    "path": "/api/v1/patients/onboarding/emergency-contact",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/emergency-contact"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 4: Save Primary/Secondary Insurance Link",
+    "method": "POST",
+    "path": "/api/v1/patients/onboarding/insurance",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/insurance"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 4: Update Insurance Details",
+    "method": "PUT",
+    "path": "/api/v1/patients/onboarding/insurance",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/insurance"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 5: Initialize Secure Digital Health Card",
+    "method": "POST",
+    "path": "/api/v1/patients/onboarding/health-card",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/health-card"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Step 6: Family Account Linkage Request",
+    "method": "POST",
+    "path": "/api/v1/patients/onboarding/family-invite",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/family-invite"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Get Step-by-Step Onboarding Progress Checklist",
+    "method": "GET",
+    "path": "/api/v1/patients/onboarding/progress",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/progress"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Finalize and Complete Onboarding Registration",
+    "method": "POST",
+    "path": "/api/v1/patients/onboarding/complete",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/complete"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Get overall Patient Onboarding Completion percentage",
+    "method": "GET",
+    "path": "/api/v1/patients/onboarding/completion",
+    "raw": "{{baseUrl}}/api/v1/patients/onboarding/completion"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Get Patient Profile Details",
+    "method": "GET",
+    "path": "/api/v1/patients/me",
+    "raw": "{{baseUrl}}/api/v1/patients/me"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Update Patient Profile",
+    "method": "PUT",
+    "path": "/api/v1/patients/me",
+    "raw": "{{baseUrl}}/api/v1/patients/me"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Accept / Reject Family Linkage Consent",
+    "method": "PATCH",
+    "path": "/api/v1/patients/family-consents/:id",
+    "raw": "{{baseUrl}}/api/v1/patients/family-consents/:id"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Get Full Patient Profile with all extended fields",
+    "method": "GET",
+    "path": "/api/v1/patients/me/full",
+    "raw": "{{baseUrl}}/api/v1/patients/me/full"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Update Basic Patient Information (name, DOB, gender, nationality, etc.)",
+    "method": "PATCH",
+    "path": "/api/v1/patients/me/basic",
+    "raw": "{{baseUrl}}/api/v1/patients/me/basic"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Update Contact Preferences",
+    "method": "PATCH",
+    "path": "/api/v1/patients/me/contact",
+    "raw": "{{baseUrl}}/api/v1/patients/me/contact"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Update Current and Permanent Address",
+    "method": "PATCH",
+    "path": "/api/v1/patients/me/address",
+    "raw": "{{baseUrl}}/api/v1/patients/me/address"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Update Communication Preferences and Privacy Settings",
+    "method": "PATCH",
+    "path": "/api/v1/patients/me/preferences",
+    "raw": "{{baseUrl}}/api/v1/patients/me/preferences"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Update Medical Summary (blood group, allergies, conditions, disabilities)",
+    "method": "PATCH",
+    "path": "/api/v1/patients/me/medical-summary",
+    "raw": "{{baseUrl}}/api/v1/patients/me/medical-summary"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Upload or Replace Profile Photo (supports multipart/form-data image or JSON photoUrl)",
+    "method": "POST",
+    "path": "/api/v1/patients/me/photo",
+    "raw": "{{baseUrl}}/api/v1/patients/me/photo"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Delete Profile Photo",
+    "method": "DELETE",
+    "path": "/api/v1/patients/me/photo",
+    "raw": "{{baseUrl}}/api/v1/patients/me/photo"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Serve locally uploaded profile photo",
+    "method": "GET",
+    "path": "/api/v1/patients/me/photo/file/:filename",
+    "raw": "{{baseUrl}}/api/v1/patients/me/photo/file/:filename"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Get Patient Profile Completion Status with section breakdown",
+    "method": "GET",
+    "path": "/api/v1/patients/profile/completion",
+    "raw": "{{baseUrl}}/api/v1/patients/profile/completion"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Get Patient Profile Change Timeline",
+    "method": "GET",
+    "path": "/api/v1/patients/profile/timeline",
+    "raw": "{{baseUrl}}/api/v1/patients/profile/timeline"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Get Patient Profile Activity Summary",
+    "method": "GET",
+    "path": "/api/v1/patients/profile/activity",
+    "raw": "{{baseUrl}}/api/v1/patients/profile/activity"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "List received treatment offers for authenticated patient",
+    "method": "GET",
+    "path": "/api/v1/patients/treatment-offers",
+    "raw": "{{baseUrl}}/api/v1/patients/treatment-offers?status=EXPIRED&patientId=string&search=string&page=1&limit=20"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Patient view of treatment offer (Triggers PATIENT_REVIEWING state)",
+    "method": "GET",
+    "path": "/api/v1/patients/treatment-offers/:offerId",
+    "raw": "{{baseUrl}}/api/v1/patients/treatment-offers/:offerId"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Patient ratifies and accepts treatment offer (RATIFIED_ACCEPTED)",
+    "method": "POST",
+    "path": "/api/v1/patients/treatment-offers/:offerId/accept",
+    "raw": "{{baseUrl}}/api/v1/patients/treatment-offers/:offerId/accept"
+  },
+  {
+    "folder": "06. Patient App",
+    "name": "Patient declines treatment offer proposal (DECLINED)",
+    "method": "POST",
+    "path": "/api/v1/patients/treatment-offers/:offerId/reject",
+    "raw": "{{baseUrl}}/api/v1/patients/treatment-offers/:offerId/reject"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Issue a new Health Card for authenticated patient",
+    "method": "POST",
+    "path": "/api/v1/health-cards",
+    "raw": "{{baseUrl}}/api/v1/health-cards"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Get active Health Card details for current patient",
+    "method": "GET",
+    "path": "/api/v1/health-cards",
+    "raw": "{{baseUrl}}/api/v1/health-cards"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Search Health Cards by card number or patient name",
+    "method": "GET",
+    "path": "/api/v1/health-cards/search",
+    "raw": "{{baseUrl}}/api/v1/health-cards/search?q=string"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Get specific Health Card details by ID",
+    "method": "GET",
+    "path": "/api/v1/health-cards/:id",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Update Health Card emergency flag or metadata",
+    "method": "PUT",
+    "path": "/api/v1/health-cards/:id",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Activate an ISSUED or DEACTIVATED Health Card",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/activate",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/activate"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Deactivate Health Card",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/deactivate",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/deactivate"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Suspend Health Card",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/suspend",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/suspend"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Block Health Card for security or lost card reasons",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/block",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/block"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Unblock a BLOCKED Health Card",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/unblock",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/unblock"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Replace Health Card \u2014 generates a new card number and increments version",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/replace",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/replace"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Renew Health Card \u2014 extends validity period by 1 year",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/renew",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/renew"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Archive Health Card",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/archive",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/archive"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Restore an ARCHIVED Health Card",
+    "method": "POST",
+    "path": "/api/v1/health-cards/:id/restore",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/restore"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Get complete status lifecycle audit history for Health Card",
+    "method": "GET",
+    "path": "/api/v1/health-cards/:id/history",
+    "raw": "{{baseUrl}}/api/v1/health-cards/:id/history"
+  },
+  {
+    "folder": "07. Digital Health Cards & Passes",
+    "name": "Verify digital Health Card QR payload",
+    "method": "POST",
+    "path": "/api/v1/health-cards/verify-qr",
+    "raw": "{{baseUrl}}/api/v1/health-cards/verify-qr"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get detailed prescription with medications and refill history",
+    "method": "GET",
+    "path": "/api/v1/prescriptions/:prescriptionId",
+    "raw": "{{baseUrl}}/api/v1/prescriptions/:prescriptionId"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Update prescription instructions or medication items",
+    "method": "PUT",
+    "path": "/api/v1/prescriptions/:prescriptionId",
+    "raw": "{{baseUrl}}/api/v1/prescriptions/:prescriptionId"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Authorize and record a prescription refill",
+    "method": "POST",
+    "path": "/api/v1/prescriptions/:prescriptionId/refill",
+    "raw": "{{baseUrl}}/api/v1/prescriptions/:prescriptionId/refill"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Discontinue an active prescription with clinical justification",
+    "method": "PATCH",
+    "path": "/api/v1/prescriptions/:prescriptionId/discontinue",
+    "raw": "{{baseUrl}}/api/v1/prescriptions/:prescriptionId/discontinue"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Export clinical prescription summary for printing or pharmacy fulfillment",
+    "method": "GET",
+    "path": "/api/v1/prescriptions/:prescriptionId/export",
+    "raw": "{{baseUrl}}/api/v1/prescriptions/:prescriptionId/export"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get refill history and audit log for a prescription",
+    "method": "GET",
+    "path": "/api/v1/prescriptions/:prescriptionId/refills",
+    "raw": "{{baseUrl}}/api/v1/prescriptions/:prescriptionId/refills"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Create a new medical record with encounter, vitals, diagnosis, and procedures",
+    "method": "POST",
+    "path": "/api/v1/medical-records",
+    "raw": "{{baseUrl}}/api/v1/medical-records"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get all medical records for the authenticated patient",
+    "method": "GET",
+    "path": "/api/v1/medical-records",
+    "raw": "{{baseUrl}}/api/v1/medical-records"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Create a new medical record with encounter, vitals, diagnosis, and procedures",
+    "method": "POST",
+    "path": "/api/v1/records",
+    "raw": "{{baseUrl}}/api/v1/records"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get all medical records for the authenticated patient",
+    "method": "GET",
+    "path": "/api/v1/records",
+    "raw": "{{baseUrl}}/api/v1/records"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get unified medical timeline combining records and attachments",
+    "method": "GET",
+    "path": "/api/v1/medical-records/timeline",
+    "raw": "{{baseUrl}}/api/v1/medical-records/timeline"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get unified medical timeline combining records and attachments",
+    "method": "GET",
+    "path": "/api/v1/records/timeline",
+    "raw": "{{baseUrl}}/api/v1/records/timeline"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Search medical records by title, complaints, notes, diagnosis, or plan",
+    "method": "GET",
+    "path": "/api/v1/medical-records/search",
+    "raw": "{{baseUrl}}/api/v1/medical-records/search?q=string"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Search medical records by title, complaints, notes, diagnosis, or plan",
+    "method": "GET",
+    "path": "/api/v1/records/search",
+    "raw": "{{baseUrl}}/api/v1/records/search?q=string"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get a specific medical record by ID",
+    "method": "GET",
+    "path": "/api/v1/medical-records/:id",
+    "raw": "{{baseUrl}}/api/v1/medical-records/:id"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Update an existing medical record (blocked if ARCHIVED)",
+    "method": "PUT",
+    "path": "/api/v1/medical-records/:id",
+    "raw": "{{baseUrl}}/api/v1/medical-records/:id"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Soft delete a medical record",
+    "method": "DELETE",
+    "path": "/api/v1/medical-records/:id",
+    "raw": "{{baseUrl}}/api/v1/medical-records/:id"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Get a specific medical record by ID",
+    "method": "GET",
+    "path": "/api/v1/records/:id",
+    "raw": "{{baseUrl}}/api/v1/records/:id"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Update an existing medical record (blocked if ARCHIVED)",
+    "method": "PUT",
+    "path": "/api/v1/records/:id",
+    "raw": "{{baseUrl}}/api/v1/records/:id"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Soft delete a medical record",
+    "method": "DELETE",
+    "path": "/api/v1/records/:id",
+    "raw": "{{baseUrl}}/api/v1/records/:id"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Archive a medical record (makes record immutable)",
+    "method": "POST",
+    "path": "/api/v1/medical-records/:id/archive",
+    "raw": "{{baseUrl}}/api/v1/medical-records/:id/archive"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Archive a medical record (makes record immutable)",
+    "method": "POST",
+    "path": "/api/v1/records/:id/archive",
+    "raw": "{{baseUrl}}/api/v1/records/:id/archive"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Restore a soft-deleted or archived medical record",
+    "method": "POST",
+    "path": "/api/v1/medical-records/:id/restore",
+    "raw": "{{baseUrl}}/api/v1/medical-records/:id/restore"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Restore a soft-deleted or archived medical record",
+    "method": "POST",
+    "path": "/api/v1/records/:id/restore",
+    "raw": "{{baseUrl}}/api/v1/records/:id/restore"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Upload and link an attachment to a specific medical record",
+    "method": "POST",
+    "path": "/api/v1/medical-records/:id/attachments",
+    "raw": "{{baseUrl}}/api/v1/medical-records/:id/attachments"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "List all attachments linked to a specific medical record",
+    "method": "GET",
+    "path": "/api/v1/medical-records/:id/attachments",
+    "raw": "{{baseUrl}}/api/v1/medical-records/:id/attachments"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "Upload and link an attachment to a specific medical record",
+    "method": "POST",
+    "path": "/api/v1/records/:id/attachments",
+    "raw": "{{baseUrl}}/api/v1/records/:id/attachments"
+  },
+  {
+    "folder": "08. Medical Records (General, Dental & Vision)",
+    "name": "List all attachments linked to a specific medical record",
+    "method": "GET",
+    "path": "/api/v1/records/:id/attachments",
+    "raw": "{{baseUrl}}/api/v1/records/:id/attachments"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Register/Create a facility profile in Master Registry",
+    "method": "POST",
+    "path": "/api/v1/facilities",
+    "raw": "{{baseUrl}}/api/v1/facilities"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "List all registered facility profiles",
+    "method": "GET",
+    "path": "/api/v1/facilities",
+    "raw": "{{baseUrl}}/api/v1/facilities?page=3467.616117677217&limit=3467.616117677217"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Enterprise facility search (by name, code, city, type)",
+    "method": "GET",
+    "path": "/api/v1/facilities/search",
+    "raw": "{{baseUrl}}/api/v1/facilities/search?q=string"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Get platform-wide facility directory statistics",
+    "method": "GET",
+    "path": "/api/v1/facilities/statistics",
+    "raw": "{{baseUrl}}/api/v1/facilities/statistics"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Get complete facility details",
+    "method": "GET",
+    "path": "/api/v1/facilities/:id",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Update facility details",
+    "method": "PUT",
+    "path": "/api/v1/facilities/:id",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Soft-delete a facility",
+    "method": "DELETE",
+    "path": "/api/v1/facilities/:id",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Approve & verify facility registration",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/verify",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/verify"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Suspend facility registration",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/suspend",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/suspend"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Restore suspended facility registration",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/restore",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/restore"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Generate Facility Digital Identity QR token",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/generate-qr",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/generate-qr"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "List facility departments",
+    "method": "GET",
+    "path": "/api/v1/facilities/:id/departments",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/departments"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Create facility department",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/departments",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/departments"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "List facility rooms",
+    "method": "GET",
+    "path": "/api/v1/facilities/:id/rooms",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/rooms"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Create facility room",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/rooms",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/rooms"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Assign doctor to facility",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/assign-doctor",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/assign-doctor"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "List associated facility doctors",
+    "method": "GET",
+    "path": "/api/v1/facilities/:id/doctors",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/doctors"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "List attached facility credential documents",
+    "method": "GET",
+    "path": "/api/v1/facilities/:id/documents",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/documents"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Attach credential document (reusing MedicalAttachment)",
+    "method": "POST",
+    "path": "/api/v1/facilities/:id/documents",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/documents"
+  },
+  {
+    "folder": "09. Facilities & Branches",
+    "name": "Get complete verification & status lifecycle history",
+    "method": "GET",
+    "path": "/api/v1/facilities/:id/history",
+    "raw": "{{baseUrl}}/api/v1/facilities/:id/history"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Book a new appointment",
+    "method": "POST",
+    "path": "/api/v1/appointments",
+    "raw": "{{baseUrl}}/api/v1/appointments"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "List appointments with filtering and pagination",
+    "method": "GET",
+    "path": "/api/v1/appointments",
+    "raw": "{{baseUrl}}/api/v1/appointments?page=1&limit=20&patientProfileId=string&doctorProfileId=string&facilityId=string&status=SCHEDULED&type=IN_PERSON&fromDate=string&toDate=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get appointments scheduled for authenticated doctor",
+    "method": "GET",
+    "path": "/api/v1/appointments/doctor/my-appointments",
+    "raw": "{{baseUrl}}/api/v1/appointments/doctor/my-appointments?page=1&limit=20&patientProfileId=string&doctorProfileId=string&facilityId=string&status=SCHEDULED&type=IN_PERSON&fromDate=string&toDate=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get appointments scheduled for authenticated doctor",
+    "method": "GET",
+    "path": "/api/v1/appointments/doctor/me",
+    "raw": "{{baseUrl}}/api/v1/appointments/doctor/me?page=1&limit=20&patientProfileId=string&doctorProfileId=string&facilityId=string&status=SCHEDULED&type=IN_PERSON&fromDate=string&toDate=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get appointments scheduled for authenticated patient",
+    "method": "GET",
+    "path": "/api/v1/appointments/patient/my-appointments",
+    "raw": "{{baseUrl}}/api/v1/appointments/patient/my-appointments?page=1&limit=20&patientProfileId=string&doctorProfileId=string&facilityId=string&status=SCHEDULED&type=IN_PERSON&fromDate=string&toDate=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get appointments scheduled for authenticated patient",
+    "method": "GET",
+    "path": "/api/v1/appointments/patient/me",
+    "raw": "{{baseUrl}}/api/v1/appointments/patient/me?page=1&limit=20&patientProfileId=string&doctorProfileId=string&facilityId=string&status=SCHEDULED&type=IN_PERSON&fromDate=string&toDate=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get appointment details by ID",
+    "method": "GET",
+    "path": "/api/v1/appointments/:id",
+    "raw": "{{baseUrl}}/api/v1/appointments/:id"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Reschedule an existing appointment",
+    "method": "PUT",
+    "path": "/api/v1/appointments/:id/reschedule",
+    "raw": "{{baseUrl}}/api/v1/appointments/:id/reschedule"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Cancel an appointment",
+    "method": "PUT",
+    "path": "/api/v1/appointments/:id/cancel",
+    "raw": "{{baseUrl}}/api/v1/appointments/:id/cancel"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Update appointment status (clinical & operational staff)",
+    "method": "PUT",
+    "path": "/api/v1/appointments/:id/status",
+    "raw": "{{baseUrl}}/api/v1/appointments/:id/status"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Create a schedule profile (doctor / staff / facility)",
+    "method": "POST",
+    "path": "/api/v1/schedules",
+    "raw": "{{baseUrl}}/api/v1/schedules"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "List all schedule profiles",
+    "method": "GET",
+    "path": "/api/v1/schedules",
+    "raw": "{{baseUrl}}/api/v1/schedules"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Search schedules by owner type, title, facility or doctor",
+    "method": "GET",
+    "path": "/api/v1/schedules/search",
+    "raw": "{{baseUrl}}/api/v1/schedules/search?q=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Platform-wide scheduling engine statistics",
+    "method": "GET",
+    "path": "/api/v1/schedules/statistics",
+    "raw": "{{baseUrl}}/api/v1/schedules/statistics"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get schedule detail with working hours, exceptions, leave blocks",
+    "method": "GET",
+    "path": "/api/v1/schedules/:id",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Update schedule profile and/or working hours",
+    "method": "PUT",
+    "path": "/api/v1/schedules/:id",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Soft-delete a schedule profile",
+    "method": "DELETE",
+    "path": "/api/v1/schedules/:id",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Run slot generation engine for a date range",
+    "method": "POST",
+    "path": "/api/v1/schedules/:id/generate-slots",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id/generate-slots"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get generated slots for a schedule in a date range",
+    "method": "GET",
+    "path": "/api/v1/schedules/:id/slots",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id/slots?fromDate=2025-08-01&toDate=2025-08-31"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Add schedule exception (vacation, conference, emergency, etc.)",
+    "method": "POST",
+    "path": "/api/v1/schedules/:id/block",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id/block"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Remove a schedule exception by its ID",
+    "method": "POST",
+    "path": "/api/v1/schedules/:id/unblock",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id/unblock?exceptionId=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Add leave block (sick, casual, earned, emergency) to schedule",
+    "method": "POST",
+    "path": "/api/v1/schedules/:id/leave",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id/leave"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get full schedule audit & modification history",
+    "method": "GET",
+    "path": "/api/v1/schedules/:id/history",
+    "raw": "{{baseUrl}}/api/v1/schedules/:id/history"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Create shift definition (Morning / Evening / Night / Split / Custom)",
+    "method": "POST",
+    "path": "/api/v1/shifts",
+    "raw": "{{baseUrl}}/api/v1/shifts"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "List shift definitions, optionally filtered by facility",
+    "method": "GET",
+    "path": "/api/v1/shifts",
+    "raw": "{{baseUrl}}/api/v1/shifts?facilityId=string"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Assign a staff member to a shift for a specific date",
+    "method": "POST",
+    "path": "/api/v1/shifts/:id/assign",
+    "raw": "{{baseUrl}}/api/v1/shifts/:id/assign"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Get all staff assignments for a specific shift",
+    "method": "GET",
+    "path": "/api/v1/shifts/:id/assignments",
+    "raw": "{{baseUrl}}/api/v1/shifts/:id/assignments"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "Add a holiday to the calendar (global or facility-specific)",
+    "method": "POST",
+    "path": "/api/v1/holidays",
+    "raw": "{{baseUrl}}/api/v1/holidays"
+  },
+  {
+    "folder": "10. Appointments, Schedules & Shifts",
+    "name": "List holidays (global + optional facility-specific)",
+    "method": "GET",
+    "path": "/api/v1/holidays",
+    "raw": "{{baseUrl}}/api/v1/holidays?facilityId=string"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Create patient care referral",
+    "method": "POST",
+    "path": "/api/v1/referrals",
+    "raw": "{{baseUrl}}/api/v1/referrals"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "List patient care referrals with optional filters",
+    "method": "GET",
+    "path": "/api/v1/referrals",
+    "raw": "{{baseUrl}}/api/v1/referrals"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "List incoming referrals for current doctor/facility",
+    "method": "GET",
+    "path": "/api/v1/referrals/my-incoming",
+    "raw": "{{baseUrl}}/api/v1/referrals/my-incoming"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "List outgoing referrals created by current doctor",
+    "method": "GET",
+    "path": "/api/v1/referrals/my-outgoing",
+    "raw": "{{baseUrl}}/api/v1/referrals/my-outgoing"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Get referral dashboard metrics and SLA performance analytics",
+    "method": "GET",
+    "path": "/api/v1/referrals/dashboard/stats",
+    "raw": "{{baseUrl}}/api/v1/referrals/dashboard/stats?facilityId=string"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Get referral details by ID",
+    "method": "GET",
+    "path": "/api/v1/referrals/:id",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Update referral clinical details",
+    "method": "PUT",
+    "path": "/api/v1/referrals/:id",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Soft-delete referral",
+    "method": "DELETE",
+    "path": "/api/v1/referrals/:id",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Triage patient referral (Approve/Decline/Redirect)",
+    "method": "PUT",
+    "path": "/api/v1/referrals/:id/triage",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/triage"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Update referral status (IN_PROGRESS, COMPLETED, CANCELLED)",
+    "method": "PUT",
+    "path": "/api/v1/referrals/:id/status",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/status"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Update referral status (alias for PUT :id/status)",
+    "method": "PATCH",
+    "path": "/api/v1/referrals/:id/status",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/status"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Add clinical coordination note to referral",
+    "method": "POST",
+    "path": "/api/v1/referrals/:id/notes",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/notes"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "List clinical notes for referral",
+    "method": "GET",
+    "path": "/api/v1/referrals/:id/notes",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/notes"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Link medical attachment to referral",
+    "method": "POST",
+    "path": "/api/v1/referrals/:id/attachments",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/attachments"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "List linked medical attachments for referral",
+    "method": "GET",
+    "path": "/api/v1/referrals/:id/attachments",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/attachments"
+  },
+  {
+    "folder": "11. Referrals & Care Coordination",
+    "name": "Get immutable status transition history for referral",
+    "method": "GET",
+    "path": "/api/v1/referrals/:id/history",
+    "raw": "{{baseUrl}}/api/v1/referrals/:id/history"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Create a family invitation",
+    "method": "POST",
+    "path": "/api/v1/family/invitations",
+    "raw": "{{baseUrl}}/api/v1/family/invitations"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "List all invitations sent by the patient",
+    "method": "GET",
+    "path": "/api/v1/family/invitations",
+    "raw": "{{baseUrl}}/api/v1/family/invitations"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Resend a pending family invitation (max 5 times)",
+    "method": "POST",
+    "path": "/api/v1/family/invitations/:id/resend",
+    "raw": "{{baseUrl}}/api/v1/family/invitations/:id/resend"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Accept a family invitation \u2014 auto-creates family member record",
+    "method": "POST",
+    "path": "/api/v1/family/invitations/:id/accept",
+    "raw": "{{baseUrl}}/api/v1/family/invitations/:id/accept"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Reject a family invitation",
+    "method": "POST",
+    "path": "/api/v1/family/invitations/:id/reject",
+    "raw": "{{baseUrl}}/api/v1/family/invitations/:id/reject"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Cancel a pending family invitation",
+    "method": "DELETE",
+    "path": "/api/v1/family/invitations/:id",
+    "raw": "{{baseUrl}}/api/v1/family/invitations/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "List all active family members",
+    "method": "GET",
+    "path": "/api/v1/family/members",
+    "raw": "{{baseUrl}}/api/v1/family/members"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Get a specific family member",
+    "method": "GET",
+    "path": "/api/v1/family/members/:id",
+    "raw": "{{baseUrl}}/api/v1/family/members/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Update family member details or status",
+    "method": "PATCH",
+    "path": "/api/v1/family/members/:id",
+    "raw": "{{baseUrl}}/api/v1/family/members/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Remove (archive) a family member",
+    "method": "DELETE",
+    "path": "/api/v1/family/members/:id",
+    "raw": "{{baseUrl}}/api/v1/family/members/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Grant a consent category to a family member",
+    "method": "POST",
+    "path": "/api/v1/family/consents",
+    "raw": "{{baseUrl}}/api/v1/family/consents"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "List all active consents granted by the patient",
+    "method": "GET",
+    "path": "/api/v1/family/consents",
+    "raw": "{{baseUrl}}/api/v1/family/consents"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Update consent (expiry date, notes)",
+    "method": "PUT",
+    "path": "/api/v1/family/consents/:id",
+    "raw": "{{baseUrl}}/api/v1/family/consents/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Revoke a granted consent \u2014 blocks access immediately",
+    "method": "DELETE",
+    "path": "/api/v1/family/consents/:id",
+    "raw": "{{baseUrl}}/api/v1/family/consents/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Get full consent audit history for the patient",
+    "method": "GET",
+    "path": "/api/v1/family/consents/history",
+    "raw": "{{baseUrl}}/api/v1/family/consents/history"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "List all guardians assigned to the patient",
+    "method": "GET",
+    "path": "/api/v1/family/guardians",
+    "raw": "{{baseUrl}}/api/v1/family/guardians"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Assign a guardian to the patient",
+    "method": "POST",
+    "path": "/api/v1/family/guardians",
+    "raw": "{{baseUrl}}/api/v1/family/guardians"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Update guardian verification status or primary flag",
+    "method": "PATCH",
+    "path": "/api/v1/family/guardians/:id",
+    "raw": "{{baseUrl}}/api/v1/family/guardians/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "List all dependents registered under this patient",
+    "method": "GET",
+    "path": "/api/v1/family/dependents",
+    "raw": "{{baseUrl}}/api/v1/family/dependents"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Register a dependent (minor, senior, or care patient)",
+    "method": "POST",
+    "path": "/api/v1/family/dependents",
+    "raw": "{{baseUrl}}/api/v1/family/dependents"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Update dependent details",
+    "method": "PATCH",
+    "path": "/api/v1/family/dependents/:id",
+    "raw": "{{baseUrl}}/api/v1/family/dependents/:id"
+  },
+  {
+    "folder": "12. Family Members & Relationships",
+    "name": "Remove a dependent",
+    "method": "DELETE",
+    "path": "/api/v1/family/dependents/:id",
+    "raw": "{{baseUrl}}/api/v1/family/dependents/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Create a new notification template with variable placeholders",
+    "method": "POST",
+    "path": "/api/v1/notifications/templates",
+    "raw": "{{baseUrl}}/api/v1/notifications/templates"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "List all notification templates",
+    "method": "GET",
+    "path": "/api/v1/notifications/templates",
+    "raw": "{{baseUrl}}/api/v1/notifications/templates"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Get notification template by ID",
+    "method": "GET",
+    "path": "/api/v1/notifications/templates/:id",
+    "raw": "{{baseUrl}}/api/v1/notifications/templates/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Update template body or subject and increment version",
+    "method": "PUT",
+    "path": "/api/v1/notifications/templates/:id",
+    "raw": "{{baseUrl}}/api/v1/notifications/templates/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Soft-delete a notification template",
+    "method": "DELETE",
+    "path": "/api/v1/notifications/templates/:id",
+    "raw": "{{baseUrl}}/api/v1/notifications/templates/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Get Enterprise Notification Platform stats & queue summary",
+    "method": "GET",
+    "path": "/api/v1/notifications/dashboard/stats",
+    "raw": "{{baseUrl}}/api/v1/notifications/dashboard/stats"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Get Enterprise Notification Platform stats & queue summary",
+    "method": "GET",
+    "path": "/api/v1/notification/dashboard/stats",
+    "raw": "{{baseUrl}}/api/v1/notification/dashboard/stats"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Get current user notification preferences",
+    "method": "GET",
+    "path": "/api/v1/notifications/preferences",
+    "raw": "{{baseUrl}}/api/v1/notifications/preferences"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Update current user notification channel preferences",
+    "method": "PUT",
+    "path": "/api/v1/notifications/preferences",
+    "raw": "{{baseUrl}}/api/v1/notifications/preferences"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Get current user notification preferences",
+    "method": "GET",
+    "path": "/api/v1/notification/preferences",
+    "raw": "{{baseUrl}}/api/v1/notification/preferences"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Update current user notification channel preferences",
+    "method": "PUT",
+    "path": "/api/v1/notification/preferences",
+    "raw": "{{baseUrl}}/api/v1/notification/preferences"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "List pending/queued notification delivery items with optional filters",
+    "method": "GET",
+    "path": "/api/v1/notifications/queue",
+    "raw": "{{baseUrl}}/api/v1/notifications/queue?status=string&notificationType=string&dateFrom=string&dateTo=string&page=3467.616117677217&limit=3467.616117677217"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "List pending/queued notification delivery items with optional filters",
+    "method": "GET",
+    "path": "/api/v1/notification/queue",
+    "raw": "{{baseUrl}}/api/v1/notification/queue?status=string&notificationType=string&dateFrom=string&dateTo=string&page=3467.616117677217&limit=3467.616117677217"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Retry queued/failed notification delivery attempts",
+    "method": "POST",
+    "path": "/api/v1/notifications/queue/retry",
+    "raw": "{{baseUrl}}/api/v1/notifications/queue/retry"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Retry queued/failed notification delivery attempts",
+    "method": "POST",
+    "path": "/api/v1/notification/queue/retry",
+    "raw": "{{baseUrl}}/api/v1/notification/queue/retry"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Process pending notification queue and dispatch via gateways",
+    "method": "POST",
+    "path": "/api/v1/notifications/queue/process",
+    "raw": "{{baseUrl}}/api/v1/notifications/queue/process"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Process pending notification queue and dispatch via gateways",
+    "method": "POST",
+    "path": "/api/v1/notification/queue/process",
+    "raw": "{{baseUrl}}/api/v1/notification/queue/process"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "List notification audit logs",
+    "method": "GET",
+    "path": "/api/v1/notifications/audit",
+    "raw": "{{baseUrl}}/api/v1/notifications/audit"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "List notification audit logs",
+    "method": "GET",
+    "path": "/api/v1/notification/audit",
+    "raw": "{{baseUrl}}/api/v1/notification/audit"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Publish/dispatch a notification across channels",
+    "method": "POST",
+    "path": "/api/v1/notifications",
+    "raw": "{{baseUrl}}/api/v1/notifications"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "List notifications for recipient or platform",
+    "method": "GET",
+    "path": "/api/v1/notifications",
+    "raw": "{{baseUrl}}/api/v1/notifications?recipientUserId=string&status=READ"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Publish/dispatch a notification across channels",
+    "method": "POST",
+    "path": "/api/v1/notification",
+    "raw": "{{baseUrl}}/api/v1/notification"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "List notifications for recipient or platform",
+    "method": "GET",
+    "path": "/api/v1/notification",
+    "raw": "{{baseUrl}}/api/v1/notification?recipientUserId=string&status=READ"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Get notification details by ID",
+    "method": "GET",
+    "path": "/api/v1/notifications/:id",
+    "raw": "{{baseUrl}}/api/v1/notifications/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Soft-delete a notification",
+    "method": "DELETE",
+    "path": "/api/v1/notifications/:id",
+    "raw": "{{baseUrl}}/api/v1/notifications/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Get notification details by ID",
+    "method": "GET",
+    "path": "/api/v1/notification/:id",
+    "raw": "{{baseUrl}}/api/v1/notification/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Soft-delete a notification",
+    "method": "DELETE",
+    "path": "/api/v1/notification/:id",
+    "raw": "{{baseUrl}}/api/v1/notification/:id"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Mark notification as READ",
+    "method": "PUT",
+    "path": "/api/v1/notifications/:id/read",
+    "raw": "{{baseUrl}}/api/v1/notifications/:id/read"
+  },
+  {
+    "folder": "14. Notifications & Alerts",
+    "name": "Mark notification as READ",
+    "method": "PUT",
+    "path": "/api/v1/notification/:id/read",
+    "raw": "{{baseUrl}}/api/v1/notification/:id/read"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Get Enterprise OCR Platform analytics dashboard summary",
+    "method": "GET",
+    "path": "/api/v1/ocr/dashboard",
+    "raw": "{{baseUrl}}/api/v1/ocr/dashboard"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Get Enterprise OCR accuracy & throughput statistics",
+    "method": "GET",
+    "path": "/api/v1/ocr/statistics",
+    "raw": "{{baseUrl}}/api/v1/ocr/statistics"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Submit medical attachment for local CPU OCR processing",
+    "method": "POST",
+    "path": "/api/v1/ocr/jobs",
+    "raw": "{{baseUrl}}/api/v1/ocr/jobs"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "List all OCR jobs with optional status, document type and pagination filters",
+    "method": "GET",
+    "path": "/api/v1/ocr/jobs",
+    "raw": "{{baseUrl}}/api/v1/ocr/jobs?status=string&documentType=string&page=3467.616117677217&limit=3467.616117677217"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Reprocess a completed, failed, or review-required OCR job",
+    "method": "POST",
+    "path": "/api/v1/ocr/reprocess/:jobId",
+    "raw": "{{baseUrl}}/api/v1/ocr/reprocess/:jobId"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Reprocess a completed, failed, or review-required OCR job",
+    "method": "POST",
+    "path": "/api/v1/ocr/jobs/:jobId/reprocess",
+    "raw": "{{baseUrl}}/api/v1/ocr/jobs/:jobId/reprocess"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Get OCR job status and details by ID",
+    "method": "GET",
+    "path": "/api/v1/ocr/jobs/:id",
+    "raw": "{{baseUrl}}/api/v1/ocr/jobs/:id"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Get extracted raw OCR text for job",
+    "method": "GET",
+    "path": "/api/v1/ocr/jobs/:id/text",
+    "raw": "{{baseUrl}}/api/v1/ocr/jobs/:id/text"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Get extracted structured fields with confidence scores",
+    "method": "GET",
+    "path": "/api/v1/ocr/jobs/:id/fields",
+    "raw": "{{baseUrl}}/api/v1/ocr/jobs/:id/fields"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Get formatted structured JSON output of OCR job",
+    "method": "GET",
+    "path": "/api/v1/ocr/jobs/:id/json",
+    "raw": "{{baseUrl}}/api/v1/ocr/jobs/:id/json"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Create an OCR Document Template with field definitions",
+    "method": "POST",
+    "path": "/api/v1/ocr/templates",
+    "raw": "{{baseUrl}}/api/v1/ocr/templates"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "List all OCR Document Templates",
+    "method": "GET",
+    "path": "/api/v1/ocr/templates",
+    "raw": "{{baseUrl}}/api/v1/ocr/templates"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Update OCR Document Template and increment version",
+    "method": "PUT",
+    "path": "/api/v1/ocr/templates/:id",
+    "raw": "{{baseUrl}}/api/v1/ocr/templates/:id"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Soft-delete an OCR Document Template",
+    "method": "DELETE",
+    "path": "/api/v1/ocr/templates/:id",
+    "raw": "{{baseUrl}}/api/v1/ocr/templates/:id"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Get paginated audit history of completed human OCR reviews",
+    "method": "GET",
+    "path": "/api/v1/ocr/reviews/history",
+    "raw": "{{baseUrl}}/api/v1/ocr/reviews/history?page=1&limit=20&status=APPROVED&reviewerId=string&startDate=string&endDate=string"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "List OCR jobs requiring manual human verification",
+    "method": "GET",
+    "path": "/api/v1/ocr/review",
+    "raw": "{{baseUrl}}/api/v1/ocr/review"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Submit human verification review for low-confidence OCR job",
+    "method": "POST",
+    "path": "/api/v1/ocr/review/:jobId",
+    "raw": "{{baseUrl}}/api/v1/ocr/review/:jobId"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "Image Scan & Candidate Metadata Extraction",
+    "method": "POST",
+    "path": "/api/v1/ai/ocr/extract",
+    "raw": "{{baseUrl}}/api/v1/ai/ocr/extract"
+  },
+  {
+    "folder": "15. OCR & Document Verification",
+    "name": "OCR Candidate Field Review & Manual Confirmation",
+    "method": "POST",
+    "path": "/api/v1/ai/ocr/confirm",
+    "raw": "{{baseUrl}}/api/v1/ai/ocr/confirm"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Create an insurance provider",
+    "method": "POST",
+    "path": "/api/v1/insurance/providers",
+    "raw": "{{baseUrl}}/api/v1/insurance/providers"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "List active insurance providers",
+    "method": "GET",
+    "path": "/api/v1/insurance/providers",
+    "raw": "{{baseUrl}}/api/v1/insurance/providers"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Create an insurance plan",
+    "method": "POST",
+    "path": "/api/v1/insurance/plans",
+    "raw": "{{baseUrl}}/api/v1/insurance/plans"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "List insurance plans (supports providerId filter)",
+    "method": "GET",
+    "path": "/api/v1/insurance/plans",
+    "raw": "{{baseUrl}}/api/v1/insurance/plans?providerId=string"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Issue/Register a full insurance policy for patient",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Get all insurance policies for current patient",
+    "method": "GET",
+    "path": "/api/v1/insurance/policies",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Search insurance policies by provider or policy number",
+    "method": "GET",
+    "path": "/api/v1/insurance/search",
+    "raw": "{{baseUrl}}/api/v1/insurance/search?q=string"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Get platform-wide insurance statistics",
+    "method": "GET",
+    "path": "/api/v1/insurance/statistics",
+    "raw": "{{baseUrl}}/api/v1/insurance/statistics"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Get specific insurance policy details",
+    "method": "GET",
+    "path": "/api/v1/insurance/policies/:id",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Update insurance policy details (blocked if ARCHIVED)",
+    "method": "PUT",
+    "path": "/api/v1/insurance/policies/:id",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Activate an insurance policy",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies/:id/activate",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id/activate"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Renew an insurance policy (extends validity by 1 year)",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies/:id/renew",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id/renew"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Suspend an insurance policy",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies/:id/suspend",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id/suspend"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Cancel an insurance policy",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies/:id/cancel",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id/cancel"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Archive an insurance policy",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies/:id/archive",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id/archive"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Restore an archived insurance policy",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies/:id/restore",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id/restore"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Verify coverage status for an insurance policy",
+    "method": "POST",
+    "path": "/api/v1/insurance/policies/:id/verify",
+    "raw": "{{baseUrl}}/api/v1/insurance/policies/:id/verify"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Create a claim draft attaching medical records and reports",
+    "method": "POST",
+    "path": "/api/v1/insurance/claims",
+    "raw": "{{baseUrl}}/api/v1/insurance/claims"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "List all claim drafts for current patient",
+    "method": "GET",
+    "path": "/api/v1/insurance/claims",
+    "raw": "{{baseUrl}}/api/v1/insurance/claims"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Save insurance details during 6-step patient onboarding (Step 4)",
+    "method": "POST",
+    "path": "/api/v1/insurance/onboard",
+    "raw": "{{baseUrl}}/api/v1/insurance/onboard"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Scan insurance card image via OCR extraction (standard endpoint)",
+    "method": "POST",
+    "path": "/api/v1/insurance/ocr",
+    "raw": "{{baseUrl}}/api/v1/insurance/ocr"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Serve uploaded insurance card file",
+    "method": "GET",
+    "path": "/api/v1/insurance/ocr/file/:filename",
+    "raw": "{{baseUrl}}/api/v1/insurance/ocr/file/:filename"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Get insurance card OCR scan record details by ID",
+    "method": "GET",
+    "path": "/api/v1/insurance/ocr/:id",
+    "raw": "{{baseUrl}}/api/v1/insurance/ocr/:id"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Scan or extract insurance card image via OCR",
+    "method": "POST",
+    "path": "/api/v1/insurance/ocr/scan",
+    "raw": "{{baseUrl}}/api/v1/insurance/ocr/scan"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Scan or extract insurance card image via OCR",
+    "method": "POST",
+    "path": "/api/v1/insurance/ocr/extract",
+    "raw": "{{baseUrl}}/api/v1/insurance/ocr/extract"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Submit manual verification review for insurance card OCR record",
+    "method": "POST",
+    "path": "/api/v1/insurance/manual-review",
+    "raw": "{{baseUrl}}/api/v1/insurance/manual-review"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Confirm extracted OCR data to create insurance policy",
+    "method": "POST",
+    "path": "/api/v1/insurance/ocr/confirm",
+    "raw": "{{baseUrl}}/api/v1/insurance/ocr/confirm"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Get all insurance cards for a specific patient",
+    "method": "GET",
+    "path": "/api/v1/patients/:patientId/insurance-cards",
+    "raw": "{{baseUrl}}/api/v1/patients/:patientId/insurance-cards"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Create / add an insurance card for a specific patient",
+    "method": "POST",
+    "path": "/api/v1/patients/:patientId/insurance-cards",
+    "raw": "{{baseUrl}}/api/v1/patients/:patientId/insurance-cards"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Get insurance card details by ID",
+    "method": "GET",
+    "path": "/api/v1/insurance-cards/:id",
+    "raw": "{{baseUrl}}/api/v1/insurance-cards/:id"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Update insurance card details",
+    "method": "PUT",
+    "path": "/api/v1/insurance-cards/:id",
+    "raw": "{{baseUrl}}/api/v1/insurance-cards/:id"
+  },
+  {
+    "folder": "19. Insurance Platform & Claims",
+    "name": "Remove / soft-delete an insurance card",
+    "method": "DELETE",
+    "path": "/api/v1/insurance-cards/:id",
+    "raw": "{{baseUrl}}/api/v1/insurance-cards/:id"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Generate a cryptographically signed QR token for any business entity",
+    "method": "POST",
+    "path": "/api/v1/qr",
+    "raw": "{{baseUrl}}/api/v1/qr"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "List all QR tokens owned by current user (supports entityType filtering)",
+    "method": "GET",
+    "path": "/api/v1/qr",
+    "raw": "{{baseUrl}}/api/v1/qr?entityType=string"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Alias for generating a signed QR identity",
+    "method": "POST",
+    "path": "/api/v1/qr/generate",
+    "raw": "{{baseUrl}}/api/v1/qr/generate"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Verify QR token signature, check validity status, and log scan details",
+    "method": "POST",
+    "path": "/api/v1/qr/verify",
+    "raw": "{{baseUrl}}/api/v1/qr/verify"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Rotate QR token by ID",
+    "method": "POST",
+    "path": "/api/v1/qr/rotate",
+    "raw": "{{baseUrl}}/api/v1/qr/rotate"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Rotate QR token (invalidates old token, generates new version)",
+    "method": "POST",
+    "path": "/api/v1/qr/:id/rotate",
+    "raw": "{{baseUrl}}/api/v1/qr/:id/rotate"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Revoke QR token by ID",
+    "method": "POST",
+    "path": "/api/v1/qr/revoke",
+    "raw": "{{baseUrl}}/api/v1/qr/revoke"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Revoke a QR token",
+    "method": "POST",
+    "path": "/api/v1/qr/:id/revoke",
+    "raw": "{{baseUrl}}/api/v1/qr/:id/revoke"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Restore a revoked or archived QR token",
+    "method": "POST",
+    "path": "/api/v1/qr/:id/restore",
+    "raw": "{{baseUrl}}/api/v1/qr/:id/restore"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Archive a QR token",
+    "method": "POST",
+    "path": "/api/v1/qr/:id/archive",
+    "raw": "{{baseUrl}}/api/v1/qr/:id/archive"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Search QR tokens directory by token or entity ID",
+    "method": "GET",
+    "path": "/api/v1/qr/search",
+    "raw": "{{baseUrl}}/api/v1/qr/search?q=string"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Get QR scan and usage analytics",
+    "method": "GET",
+    "path": "/api/v1/qr/statistics",
+    "raw": "{{baseUrl}}/api/v1/qr/statistics"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Get QR details by ID",
+    "method": "GET",
+    "path": "/api/v1/qr/:id",
+    "raw": "{{baseUrl}}/api/v1/qr/:id"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Update QR code validity or parameters",
+    "method": "PUT",
+    "path": "/api/v1/qr/:id",
+    "raw": "{{baseUrl}}/api/v1/qr/:id"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Soft-delete a QR token",
+    "method": "DELETE",
+    "path": "/api/v1/qr/:id",
+    "raw": "{{baseUrl}}/api/v1/qr/:id"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Get complete status lifecycle history for a QR code",
+    "method": "GET",
+    "path": "/api/v1/qr/:id/history",
+    "raw": "{{baseUrl}}/api/v1/qr/:id/history"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Get scan audit log history for a QR code",
+    "method": "GET",
+    "path": "/api/v1/qr/:id/scans",
+    "raw": "{{baseUrl}}/api/v1/qr/:id/scans"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Bulk generate QR tokens for multiple entities",
+    "method": "POST",
+    "path": "/api/v1/qr/bulk-generate",
+    "raw": "{{baseUrl}}/api/v1/qr/bulk-generate"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Bulk rotate multiple QR tokens",
+    "method": "POST",
+    "path": "/api/v1/qr/bulk-rotate",
+    "raw": "{{baseUrl}}/api/v1/qr/bulk-rotate"
+  },
+  {
+    "folder": "22. Enterprise QR Subsystem",
+    "name": "Bulk revoke multiple QR tokens",
+    "method": "POST",
+    "path": "/api/v1/qr/bulk-revoke",
+    "raw": "{{baseUrl}}/api/v1/qr/bulk-revoke"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Register a vaccine in directory",
+    "method": "POST",
+    "path": "/api/v1/immunisation/vaccines",
+    "raw": "{{baseUrl}}/api/v1/immunisation/vaccines"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "List all available vaccines",
+    "method": "GET",
+    "path": "/api/v1/immunisation/vaccines",
+    "raw": "{{baseUrl}}/api/v1/immunisation/vaccines"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Create a vaccination schedule / dose rule",
+    "method": "POST",
+    "path": "/api/v1/immunisation/schedules",
+    "raw": "{{baseUrl}}/api/v1/immunisation/schedules"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "List vaccination schedules (supports vaccineId filter)",
+    "method": "GET",
+    "path": "/api/v1/immunisation/schedules",
+    "raw": "{{baseUrl}}/api/v1/immunisation/schedules?vaccineId=string"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Create/Schedule a patient vaccination record",
+    "method": "POST",
+    "path": "/api/v1/immunisation/records",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "List all vaccination records for current patient",
+    "method": "GET",
+    "path": "/api/v1/immunisation/records",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Search immunisation directory by vaccine, batch, or facility",
+    "method": "GET",
+    "path": "/api/v1/immunisation/search",
+    "raw": "{{baseUrl}}/api/v1/immunisation/search?q=string"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Get immunisation platform statistics",
+    "method": "GET",
+    "path": "/api/v1/immunisation/statistics",
+    "raw": "{{baseUrl}}/api/v1/immunisation/statistics"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Get specific vaccination record details",
+    "method": "GET",
+    "path": "/api/v1/immunisation/records/:id",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records/:id"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Update vaccination record details (blocked if ARCHIVED)",
+    "method": "PUT",
+    "path": "/api/v1/immunisation/records/:id",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records/:id"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Administer a dose (captures batch, lot, site, administrator)",
+    "method": "POST",
+    "path": "/api/v1/immunisation/records/:id/administer",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records/:id/administer"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Mark vaccination record / series as completed",
+    "method": "POST",
+    "path": "/api/v1/immunisation/records/:id/complete",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records/:id/complete"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Defer a dose with clinical reason and rescheduled date",
+    "method": "POST",
+    "path": "/api/v1/immunisation/records/:id/defer",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records/:id/defer"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Archive a vaccination record",
+    "method": "POST",
+    "path": "/api/v1/immunisation/records/:id/archive",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records/:id/archive"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Restore an archived vaccination record",
+    "method": "POST",
+    "path": "/api/v1/immunisation/records/:id/restore",
+    "raw": "{{baseUrl}}/api/v1/immunisation/records/:id/restore"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Generate digital vaccine certificate with QR token & PDF link",
+    "method": "POST",
+    "path": "/api/v1/immunisation/certificates",
+    "raw": "{{baseUrl}}/api/v1/immunisation/certificates"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "List all digital vaccine certificates for current patient",
+    "method": "GET",
+    "path": "/api/v1/immunisation/certificates",
+    "raw": "{{baseUrl}}/api/v1/immunisation/certificates"
+  },
+  {
+    "folder": "24. Immunisation Platform & Vaccines",
+    "name": "Configure vaccination reminder metadata & preferences",
+    "method": "POST",
+    "path": "/api/v1/immunisation/reminders/config",
+    "raw": "{{baseUrl}}/api/v1/immunisation/reminders/config"
+  },
+  {
+    "folder": "25. Support Tickets & Helpdesk",
+    "name": "Create support ticket",
+    "method": "POST",
+    "path": "/api/v1/support/tickets",
+    "raw": "{{baseUrl}}/api/v1/support/tickets"
+  },
+  {
+    "folder": "25. Support Tickets & Helpdesk",
+    "name": "List support tickets (filtered by user ownership or admin/staff access)",
+    "method": "GET",
+    "path": "/api/v1/support/tickets",
+    "raw": "{{baseUrl}}/api/v1/support/tickets?status=string&priority=string&category=string&search=string&page=1&limit=20"
+  },
+  {
+    "folder": "25. Support Tickets & Helpdesk",
+    "name": "Get support ticket details by ID",
+    "method": "GET",
+    "path": "/api/v1/support/tickets/:id",
+    "raw": "{{baseUrl}}/api/v1/support/tickets/:id"
+  },
+  {
+    "folder": "25. Support Tickets & Helpdesk",
+    "name": "Update support ticket status, priority or assignment (Admin/Staff)",
+    "method": "PUT",
+    "path": "/api/v1/support/tickets/:id",
+    "raw": "{{baseUrl}}/api/v1/support/tickets/:id"
+  },
+  {
+    "folder": "25. Support Tickets & Helpdesk",
+    "name": "Add message reply to support ticket",
+    "method": "POST",
+    "path": "/api/v1/support/tickets/:id/reply",
+    "raw": "{{baseUrl}}/api/v1/support/tickets/:id/reply"
+  },
+  {
+    "folder": "25. Support Tickets & Helpdesk",
+    "name": "Get all replies for support ticket",
+    "method": "GET",
+    "path": "/api/v1/support/tickets/:id/replies",
+    "raw": "{{baseUrl}}/api/v1/support/tickets/:id/replies"
+  },
+  {
+    "folder": "26. Pet Health Records",
+    "name": "Register a new pet profile",
+    "method": "POST",
+    "path": "/api/v1/pets",
+    "raw": "{{baseUrl}}/api/v1/pets"
+  },
+  {
+    "folder": "26. Pet Health Records",
+    "name": "List pets (filtered by user ownership or admin/staff access)",
+    "method": "GET",
+    "path": "/api/v1/pets",
+    "raw": "{{baseUrl}}/api/v1/pets?species=string&search=string&page=3467.616117677217&limit=3467.616117677217"
+  },
+  {
+    "folder": "26. Pet Health Records",
+    "name": "Get pet profile by ID",
+    "method": "GET",
+    "path": "/api/v1/pets/:id",
+    "raw": "{{baseUrl}}/api/v1/pets/:id"
+  },
+  {
+    "folder": "26. Pet Health Records",
+    "name": "Update pet profile",
+    "method": "PUT",
+    "path": "/api/v1/pets/:id",
+    "raw": "{{baseUrl}}/api/v1/pets/:id"
+  },
+  {
+    "folder": "26. Pet Health Records",
+    "name": "Delete pet profile",
+    "method": "DELETE",
+    "path": "/api/v1/pets/:id",
+    "raw": "{{baseUrl}}/api/v1/pets/:id"
+  },
+  {
+    "folder": "26. Pet Health Records",
+    "name": "Add vaccination record to pet",
+    "method": "POST",
+    "path": "/api/v1/pets/:id/vaccinations",
+    "raw": "{{baseUrl}}/api/v1/pets/:id/vaccinations"
+  },
+  {
+    "folder": "26. Pet Health Records",
+    "name": "Get all vaccination records for pet",
+    "method": "GET",
+    "path": "/api/v1/pets/:id/vaccinations",
+    "raw": "{{baseUrl}}/api/v1/pets/:id/vaccinations"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "List available healthcare financing options and partners",
+    "method": "GET",
+    "path": "/api/v1/financing/options",
+    "raw": "{{baseUrl}}/api/v1/financing/options"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "List pre-approved healthcare financing offers for current patient",
+    "method": "GET",
+    "path": "/api/v1/financing/offers",
+    "raw": "{{baseUrl}}/api/v1/financing/offers"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "Get details of specific healthcare financing offer or treatment proposal",
+    "method": "GET",
+    "path": "/api/v1/financing/offers/:id",
+    "raw": "{{baseUrl}}/api/v1/financing/offers/:id"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "Accept pre-approved healthcare financing offer (Initiates partner underwriting review)",
+    "method": "POST",
+    "path": "/api/v1/financing/offers/:id/accept",
+    "raw": "{{baseUrl}}/api/v1/financing/offers/:id/accept"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "Reject healthcare financing offer",
+    "method": "POST",
+    "path": "/api/v1/financing/offers/:id/reject",
+    "raw": "{{baseUrl}}/api/v1/financing/offers/:id/reject"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "Submit application for healthcare financing / EMI assistance",
+    "method": "POST",
+    "path": "/api/v1/financing/apply",
+    "raw": "{{baseUrl}}/api/v1/financing/apply"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "List financing applications (scoped to patient or global for admin/staff)",
+    "method": "GET",
+    "path": "/api/v1/financing/applications",
+    "raw": "{{baseUrl}}/api/v1/financing/applications?status=string&partnerName=string&search=string&page=3467.616117677217&limit=3467.616117677217"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "Get financing application details by ID",
+    "method": "GET",
+    "path": "/api/v1/financing/applications/:id",
+    "raw": "{{baseUrl}}/api/v1/financing/applications/:id"
+  },
+  {
+    "folder": "27. Healthcare Financing & Financial Assistance",
+    "name": "Update financing application review status (Admin/Staff)",
+    "method": "PATCH",
+    "path": "/api/v1/financing/applications/:id/status",
+    "raw": "{{baseUrl}}/api/v1/financing/applications/:id/status"
+  }
+]

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../../../../core/network/api_result.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/careid_logo.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../auth/data/models/register_patient_request.dart';
-import '../../../auth/data/models/registration_context.dart';
 import '../../../auth/data/repositories/registration_repository.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import 'mobile_number_screen.dart';
 
 /// CareID Create Account Screen
@@ -244,8 +243,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Header Section (Figma Node 20:30645)
-                    const CareIdLogo(size: 80),
+                    // Header Section (Figma Node 20:30660, 107x64 stacked)
+                    const CareIdLogo.stacked(width: 107, height: 64),
                     const SizedBox(height: 16),
                     Text(
                       _isEn
@@ -538,8 +537,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     const SizedBox(height: 20),
 
                     // Sign In Navigation Link (Figma Node 20:30747)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           _isEn
@@ -552,12 +552,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Sign In flow scheduled for subsequent phase.',
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute<void>(
+                                builder: (_) => LoginScreen(
+                                  apiClient: widget.apiClient,
+                                  language: widget.language,
                                 ),
-                                duration: Duration(seconds: 2),
                               ),
                             );
                           },
@@ -577,8 +577,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     const SizedBox(height: 24),
 
                     // Footer Trust Notice (Figma Node 20:30750)
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    const Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Icon(
                           Icons.lock_rounded,

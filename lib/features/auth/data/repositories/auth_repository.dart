@@ -17,7 +17,7 @@ class AuthRepository {
 
   AuthRepository({ApiClient? apiClient, TokenStorage? tokenStorage})
     : _apiClient = apiClient,
-      _tokenStorage = tokenStorage ?? InMemoryTokenStorage();
+      _tokenStorage = tokenStorage ?? apiClient?.tokenStorage ?? AppTokenStorage();
 
   bool get isRequestInFlight => _isRequestInFlight;
   bool get isVerifyInFlight => _isVerifyInFlight;
@@ -210,6 +210,46 @@ class AuthRepository {
       return ApiFailure(
         message: 'Error initializing draft patient profile: $e',
       );
+    }
+  }
+
+  /// Logs out of current session and clears persisted tokens.
+  /// Endpoint: POST /api/v1/auth/logout
+  Future<ApiResult<Map<String, dynamic>>> logout() async {
+    try {
+      final client = _apiClient ?? ApiClient(tokenStorage: _tokenStorage);
+      final result = await client.post<Map<String, dynamic>>(
+        ApiEndpoints.logout,
+        requiresAuth: true,
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) return json;
+          return <String, dynamic>{'status': 'logged_out'};
+        },
+      );
+      await _tokenStorage.clear();
+      return result;
+    } catch (e) {
+      await _tokenStorage.clear();
+      return ApiFailure(message: 'Error during logout: $e');
+    }
+  }
+
+  /// Retrieves current authenticated user profile details.
+  /// Endpoint: GET /api/v1/auth/me
+  Future<ApiResult<Map<String, dynamic>>> getCurrentUser() async {
+    try {
+      final client = _apiClient ?? ApiClient(tokenStorage: _tokenStorage);
+      final result = await client.get<Map<String, dynamic>>(
+        ApiEndpoints.authMe,
+        requiresAuth: true,
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) return json;
+          return <String, dynamic>{};
+        },
+      );
+      return result;
+    } catch (e) {
+      return ApiFailure(message: 'Error fetching authenticated user: $e');
     }
   }
 

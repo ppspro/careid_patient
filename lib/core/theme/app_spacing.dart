@@ -38,7 +38,7 @@ class AppSpacing {
 
   static const List<BoxShadow> buttonPrimaryShadow = [
     BoxShadow(
-      color: Color(0x387C3AED),
+      color: Color(0x4D5B14B8),
       blurRadius: 16.0,
       offset: Offset(0, 6),
       spreadRadius: 0,

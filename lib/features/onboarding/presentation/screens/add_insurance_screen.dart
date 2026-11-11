@@ -1,19 +1,26 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../../../../core/network/api_result.dart';
-import '../../../../core/storage/token_storage.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../shared/widgets/careid_logo.dart';
-import '../../../../shared/widgets/language_toggle.dart';
 import '../../../../shared/widgets/primary_button.dart';
+import '../../../../shared/widgets/secondary_button.dart';
 import '../../../auth/data/models/registration_context.dart';
 import '../../data/models/insurance_models.dart';
 import '../../data/repositories/onboarding_repository.dart';
+import 'privacy_consents_screen.dart';
 
 /// CareID Add Insurance Info Screen
 /// Faithfully implements Step 4 of 6 in Patient Onboarding (Figma Node 20:33068, "Add Insurance Info").
+/// Also covers and aligns with Insurance Intake sub-flows:
+/// - 20:20311 ("Add Insurance - Select Method")
+/// - 20:20258 ("Insurance Card - Camera Capture")
+/// - 20:20415 ("OCR Processing - Insurance Card")
+/// - 20:20517 ("OCR Extraction Results")
+/// - 20:20723 ("Manual Review & Edit")
+/// - 20:20890 ("Insurance Card Details")
 /// Follows Step 3 (Health Information & Demographics).
 class AddInsuranceScreen extends StatefulWidget {
   final RegistrationContext registrationContext;
@@ -55,11 +62,11 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
   // Submission & Network State
   bool _isSaving = false;
   String? _errorMessage;
-  String? _successMessage;
 
   // Card Scanning / Camera State
   bool _isScanningCard = false;
   String? _scannedCardNotice;
+  final _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -69,7 +76,7 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
         widget.onboardingRepository ??
         OnboardingRepository(
           apiClient: widget.apiClient,
-          tokenStorage: InMemoryTokenStorage(),
+          tokenStorage: widget.apiClient?.tokenStorage,
         );
 
     // Pre-hydrate from RegistrationContext if available
@@ -252,11 +259,21 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
               const SizedBox(height: 20),
               PrimaryButton(
                 text: _isEn
-                    ? 'Capture & Extract Details'
-                    : 'Capturar y Extraer',
+                    ? 'Take Photo with Camera'
+                    : 'Tomar Foto con Cámara',
                 onPressed: () {
                   Navigator.pop(ctx);
-                  _simulateOcrExtraction();
+                  _pickAndProcessCardImage(ImageSource.camera);
+                },
+              ),
+              const SizedBox(height: 12),
+              SecondaryButton(
+                text: _isEn
+                    ? 'Choose from Gallery'
+                    : 'Seleccionar de Galería',
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _pickAndProcessCardImage(ImageSource.gallery);
                 },
               ),
               const SizedBox(height: 10),
@@ -274,28 +291,96 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
     );
   }
 
-  void _simulateOcrExtraction() {
+  /// Captures or selects an insurance card image and submits to backend OCR extraction
+  /// POST /api/v1/insurance/ocr/scan
+  Future<void> _pickAndProcessCardImage(ImageSource source) async {
     setState(() {
       _isScanningCard = true;
       _scannedCardNotice = null;
+      _errorMessage = null;
     });
 
-    Future.delayed(const Duration(milliseconds: 600), () {
+    try {
+      final pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1600,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) {
+        // User cancelled image selection or capture
+        if (mounted) {
+          setState(() {
+            _isScanningCard = false;
+          });
+        }
+        return;
+      }
+
+      final bytes = await pickedFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      final mimeType = pickedFile.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+      final dataUri = 'data:$mimeType;base64,$base64Image';
+
+      // Submit to supported CareID backend OCR endpoint
+      final ocrResult = await _repository.scanInsuranceCard(
+        InsuranceOcrScanDto(imageUrl: dataUri),
+      );
+
+      if (!mounted) return;
+
+      ocrResult.when(
+        success: (Map<String, dynamic> data, String? message) {
+          final extracted = data['extractedData'] is Map<String, dynamic>
+              ? data['extractedData'] as Map<String, dynamic>
+              : (data['extracted'] is Map<String, dynamic>
+                  ? data['extracted'] as Map<String, dynamic>
+                  : data);
+
+          final provider = extracted['providerName']?.toString();
+          final policyNumber = extracted['policyNumber']?.toString();
+          final groupNumber = extracted['groupNumber']?.toString() ??
+              extracted['coverageDetails']?.toString();
+
+          setState(() {
+            _isScanningCard = false;
+            if (provider != null && provider.isNotEmpty) {
+              _providerController.text = provider;
+            }
+            if (policyNumber != null && policyNumber.isNotEmpty) {
+              _memberIdController.text = policyNumber;
+            }
+            if (groupNumber != null && groupNumber.isNotEmpty) {
+              _groupNumberController.text = groupNumber;
+            }
+            _providerError = null;
+            _memberIdError = null;
+            _groupNumberError = null;
+            _scannedCardNotice = _isEn
+                ? 'Card details successfully extracted from image via OCR! Please review and verify the information below.'
+                : '¡Datos de la tarjeta extraídos mediante OCR! Revisa y verifica la información abajo.';
+          });
+        },
+        failure: (String errorMessage, int? statusCode, Object? error) {
+          setState(() {
+            _isScanningCard = false;
+            // Transparently report the backend response and provide manual-entry fallback
+            _scannedCardNotice = _isEn
+                ? 'Card image captured. Backend OCR returned: $errorMessage. You can enter your policy details manually below.'
+                : 'Tarjeta capturada. El OCR del servidor respondió: $errorMessage. Puedes ingresar los datos manualmente abajo.';
+          });
+        },
+      );
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _isScanningCard = false;
-        // Pre-fill with detected card details matching the Swagger/Postman example
-        _providerController.text = 'Blue Shield';
-        _memberIdController.text = 'POL987654321';
-        _groupNumberController.text = 'GRP-100200';
-        _providerError = null;
-        _memberIdError = null;
-        _groupNumberError = null;
         _scannedCardNotice = _isEn
-            ? 'Card details captured and pre-filled! Please verify before continuing.'
-            : '¡Detalles capturados y completados! Por favor verifica antes de continuar.';
+            ? 'Camera / file access note: $e. You can enter your policy details manually below.'
+            : 'Nota de acceso a cámara: $e. Puedes ingresar los datos manualmente abajo.';
       });
-    });
+    }
   }
 
   /// Submits the insurance information payload or skips
@@ -338,7 +423,6 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
     setState(() {
       _isSaving = true;
       _errorMessage = null;
-      _successMessage = null;
     });
 
     // Update local registration context with entered insurance details
@@ -358,11 +442,6 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
 
     result.when(
       success: (data, message) {
-        setState(() {
-          _successMessage = _isEn
-              ? 'Insurance details saved successfully.'
-              : 'Detalles del seguro guardados con éxito.';
-        });
         _navigateToNextStep(updatedContext);
       },
       failure: (message, statusCode, error) {
@@ -380,15 +459,14 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
   }
 
   void _navigateToNextStep(RegistrationContext context) {
-    ScaffoldMessenger.of(this.context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isEn
-              ? 'Step 4 Complete! Proceeding to Step 5 (Privacy & Consents).'
-              : '¡Paso 4 completado! Avanzando al Paso 5 (Privacidad y Consentimientos).',
+    Navigator.of(this.context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PrivacyConsentsScreen(
+          registrationContext: context,
+          apiClient: widget.apiClient,
+          onboardingRepository: _repository,
+          language: _currentLanguage,
         ),
-        backgroundColor: const Color(0xFF5B14B8),
-        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -542,15 +620,18 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              _isEn ? 'VERIFICATION STEP' : 'PASO DE VERIFICACIÓN',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF00696B),
-                letterSpacing: 0.6,
+            Expanded(
+              child: Text(
+                _isEn ? 'VERIFICATION STEP' : 'PASO DE VERIFICACIÓN',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF00696B),
+                  letterSpacing: 0.6,
+                ),
               ),
             ),
+            const SizedBox(width: 8),
             Text(
               _isEn ? 'Step 4 of 6' : 'Paso 4 de 6',
               style: const TextStyle(
@@ -860,71 +941,11 @@ class _AddInsuranceScreenState extends State<AddInsuranceScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        // Primary Gradient Button "Save & Continue"
-        Container(
-          height: 52,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [Color(0xFF5B14B8), Color(0xFFA44CFF)],
-            ),
-            borderRadius: BorderRadius.circular(9999),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1A000000),
-                offset: Offset(0, 10),
-                blurRadius: 15,
-                spreadRadius: -3,
-              ),
-              BoxShadow(
-                color: Color(0x1A000000),
-                offset: Offset(0, 4),
-                blurRadius: 6,
-                spreadRadius: -4,
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(9999),
-              onTap: _isSaving ? null : () => _handleSubmit(isSkipping: false),
-              child: Center(
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _isEn ? 'Save & Continue' : 'Guardar y Continuar',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: -0.015,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 14,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
+        PrimaryButton(
+          label: _isEn ? 'Save & Continue' : 'Guardar y Continuar',
+          trailingIcon: Icons.arrow_forward_ios,
+          isLoading: _isSaving,
+          onPressed: () => _handleSubmit(isSkipping: false),
         ),
         const SizedBox(height: 12),
         // Secondary Action: "I'll do this later"

@@ -62,7 +62,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 16.0,
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.2,
+    letterSpacing: 0.4,
     color: AppColors.textOnPrimary,
   );
 
@@ -89,4 +89,38 @@ class AppTypography {
     fontWeight: FontWeight.w600,
     color: AppColors.textSecondary,
   );
+
+  // Common Semantic Aliases
+  static const TextStyle titleLarge = heading1;
+  static const TextStyle titleMedium = heading2;
+  static const TextStyle titleSmall = heading3;
+  static const TextStyle headlineLarge = heading1;
+  static const TextStyle headlineMedium = heading1;
+  static const TextStyle headlineSmall = heading2;
+  static const TextStyle bodyLarge = subtitle;
+  static const TextStyle bodyMedium = body;
+  static const TextStyle bodySmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 12.0,
+    fontWeight: FontWeight.w400,
+    height: 1.35,
+    color: AppColors.textSecondary,
+  );
+  static const TextStyle labelLarge = buttonPrimary;
+  static const TextStyle labelMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 13.0,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+  static const TextStyle labelSmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 11.0,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle bodyRegular = body;
+  static const TextStyle caption = bodySmall;
+  static const TextStyle buttonText = buttonPrimary;
 }

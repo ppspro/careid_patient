@@ -3,11 +3,27 @@ import 'package:flutter/material.dart';
 import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/network/api_client.dart';
+import 'core/storage/token_storage.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final apiClient = ApiClient(baseUrl: AppConfig.apiBaseUrl);
+  final tokenStorage = AppTokenStorage();
 
-  runApp(CareIdPatientApp(apiClient: apiClient));
+  final apiClient = ApiClient(
+    baseUrl: AppConfig.apiBaseUrl,
+    tokenStorage: tokenStorage,
+  );
+
+  final defaultRoute = WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+  final effectiveInitialRoute = (defaultRoute.isNotEmpty && defaultRoute != '/')
+      ? defaultRoute
+      : '/splash';
+
+  runApp(
+    CareIdPatientApp(
+      apiClient: apiClient,
+      initialRoute: effectiveInitialRoute,
+    ),
+  );
 }

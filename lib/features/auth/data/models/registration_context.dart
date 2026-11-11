@@ -35,6 +35,17 @@ class RegistrationContext {
   final String? insuranceCardFrontPath;
   final bool isInsuranceSkipped;
 
+  // Privacy & Consents (Step 5)
+  final bool termsAccepted;
+  final bool privacyPolicyAccepted;
+  final bool healthStorageConsent;
+  final bool shareWithProvidersConsent;
+  final bool marketingConsent;
+  final bool clinicalRemindersConsent;
+
+  // Confirmation & Health Card (Step 6)
+  final String? careIdNumber;
+
   const RegistrationContext({
     required this.fullName,
     required this.phone,
@@ -64,12 +75,21 @@ class RegistrationContext {
     this.insuranceGroupNumber,
     this.insuranceCardFrontPath,
     this.isInsuranceSkipped = false,
+    this.termsAccepted = false,
+    this.privacyPolicyAccepted = false,
+    this.healthStorageConsent = true,
+    this.shareWithProvidersConsent = true,
+    this.marketingConsent = false,
+    this.clinicalRemindersConsent = true,
+    this.careIdNumber,
   });
 
   bool get hasInsurance =>
       insuranceProvider != null &&
       insuranceMemberId != null &&
       !isInsuranceSkipped;
+
+  bool get hasConsentsAccepted => termsAccepted && privacyPolicyAccepted;
 
   /// Formatted masked phone display (e.g. +1 (•••) •••-2671).
   String get maskedPhone {
@@ -82,6 +102,17 @@ class RegistrationContext {
       return '$country(•••) •••-$last4';
     }
     return phone;
+  }
+
+  /// Display Care ID Number (e.g. #CI-920512).
+  String get displayCareId {
+    if (careIdNumber != null && careIdNumber!.isNotEmpty) {
+      return careIdNumber!.startsWith('#') ? careIdNumber! : '#$careIdNumber';
+    }
+    if (patientNumber != null && patientNumber!.isNotEmpty) {
+      return '#$patientNumber';
+    }
+    return '#CI-920512';
   }
 
   RegistrationContext copyWith({
@@ -113,6 +144,13 @@ class RegistrationContext {
     String? insuranceGroupNumber,
     String? insuranceCardFrontPath,
     bool? isInsuranceSkipped,
+    bool? termsAccepted,
+    bool? privacyPolicyAccepted,
+    bool? healthStorageConsent,
+    bool? shareWithProvidersConsent,
+    bool? marketingConsent,
+    bool? clinicalRemindersConsent,
+    String? careIdNumber,
   }) {
     return RegistrationContext(
       fullName: fullName ?? this.fullName,
@@ -146,11 +184,21 @@ class RegistrationContext {
       insuranceCardFrontPath:
           insuranceCardFrontPath ?? this.insuranceCardFrontPath,
       isInsuranceSkipped: isInsuranceSkipped ?? this.isInsuranceSkipped,
+      termsAccepted: termsAccepted ?? this.termsAccepted,
+      privacyPolicyAccepted:
+          privacyPolicyAccepted ?? this.privacyPolicyAccepted,
+      healthStorageConsent: healthStorageConsent ?? this.healthStorageConsent,
+      shareWithProvidersConsent:
+          shareWithProvidersConsent ?? this.shareWithProvidersConsent,
+      marketingConsent: marketingConsent ?? this.marketingConsent,
+      clinicalRemindersConsent:
+          clinicalRemindersConsent ?? this.clinicalRemindersConsent,
+      careIdNumber: careIdNumber ?? this.careIdNumber,
     );
   }
 
   @override
   String toString() {
-    return 'RegistrationContext(patientNumber: $patientNumber, step: $onboardingStep, bloodGroup: $bloodGroup)';
+    return 'RegistrationContext(patientNumber: $patientNumber, careId: $displayCareId, step: $onboardingStep, bloodGroup: $bloodGroup, consents: $hasConsentsAccepted)';
   }
 }

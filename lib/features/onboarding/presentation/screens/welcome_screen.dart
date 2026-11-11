@@ -10,6 +10,7 @@ import '../../../../shared/widgets/language_toggle.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../../../shared/widgets/secondary_button.dart';
 import '../../../../shared/widgets/service_feature_card.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
 import 'create_account_screen.dart';
 
 /// CareID Welcome Screen
@@ -103,15 +104,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void _onAlreadyHaveAccount() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isEn
-              ? 'Login Flow (Frame 20:24965) scheduled for subsequent phase.'
-              : 'Inicio de sesión programado para la siguiente fase.',
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => LoginScreen(
+          apiClient: _apiClient,
+          language: _currentLanguage,
         ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -201,9 +199,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
+      body: Stack(
+        children: [
+          // Subtle medical ecosystem background elements (Figma Node 20:19796)
+          Positioned(
+            left: 20,
+            right: 20,
+            top: 140,
+            bottom: 60,
+            child: Opacity(
+              opacity: 0.035,
+              child: Image.asset(
+                'assets/images/careid_splash_graphic.png',
+                fit: BoxFit.contain,
+                alignment: Alignment.center,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
             // Top App Bar / Language Selector Header
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -293,8 +309,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // CareID Logo
-                              const CareIdLogo(size: 116),
+                              // CareID Logo (Figma node 20:19804: 200x113 stacked)
+                              const CareIdLogo.stacked(width: 200, height: 113),
 
                               const SizedBox(height: 20),
 
@@ -355,7 +371,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               const SizedBox(height: 24),
 
                               // Primary CTA: "Get Started →"
-                              PrimaryButton(
+                              PrimaryButton.gradient(
                                 label: _getStarted,
                                 onPressed: _onGetStarted,
                               ),
@@ -379,6 +395,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ],
         ),
       ),
-    );
+    ],
+  ),
+);
   }
 }

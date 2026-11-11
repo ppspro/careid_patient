@@ -14,12 +14,14 @@ class OnboardInsuranceDto {
   final String policyNumber;
   final String? groupNumber;
   final String? coverageDetails;
+  final String? expiryDate;
 
   const OnboardInsuranceDto({
     required this.providerName,
     required this.policyNumber,
     this.groupNumber,
     this.coverageDetails,
+    this.expiryDate,
   });
 
   /// Factory constructor parsing from backend JSON response
@@ -29,6 +31,7 @@ class OnboardInsuranceDto {
       policyNumber: (json['policyNumber'] as String?)?.trim() ?? '',
       groupNumber: (json['groupNumber'] as String?)?.trim(),
       coverageDetails: (json['coverageDetails'] as String?)?.trim(),
+      expiryDate: (json['expiryDate'] as String?)?.trim(),
     );
   }
 
@@ -36,9 +39,12 @@ class OnboardInsuranceDto {
   /// POST /api/v1/patients/onboarding/insurance & POST /api/v1/insurance/onboard
   Map<String, dynamic> toJson() {
     final effectiveCoverage = _computeCoverageDetails();
+    final effectiveExpiry = expiryDate ??
+        DateTime.now().add(const Duration(days: 365)).toUtc().toIso8601String();
     return {
       'providerName': providerName.trim(),
       'policyNumber': policyNumber.trim(),
+      'expiryDate': effectiveExpiry,
       if (effectiveCoverage != null && effectiveCoverage.isNotEmpty)
         'coverageDetails': effectiveCoverage,
     };
@@ -60,12 +66,14 @@ class OnboardInsuranceDto {
     String? policyNumber,
     String? groupNumber,
     String? coverageDetails,
+    String? expiryDate,
   }) {
     return OnboardInsuranceDto(
       providerName: providerName ?? this.providerName,
       policyNumber: policyNumber ?? this.policyNumber,
       groupNumber: groupNumber ?? this.groupNumber,
       coverageDetails: coverageDetails ?? this.coverageDetails,
+      expiryDate: expiryDate ?? this.expiryDate,
     );
   }
 

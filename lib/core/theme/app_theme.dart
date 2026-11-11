@@ -11,12 +11,13 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primaryColor: AppColors.purplePrimary,
+      primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.light(
-        primary: AppColors.purplePrimary,
-        secondary: AppColors.tealPrimary,
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
         surface: AppColors.surface,
+        background: AppColors.background,
         error: AppColors.error,
         onPrimary: AppColors.textOnPrimary,
         onSecondary: AppColors.textOnPrimary,
@@ -31,7 +32,7 @@ class AppTheme {
         iconTheme: IconThemeData(color: AppColors.textPrimary),
         titleTextStyle: AppTypography.heading2,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -42,7 +43,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: AppColors.purplePrimary,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.textOnPrimary,
           textStyle: AppTypography.buttonPrimary,
           shape: const StadiumBorder(),

@@ -2,10 +2,12 @@ import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/storage/token_storage.dart';
+import '../models/consent_models.dart';
+import '../models/health_card_models.dart';
 import '../models/health_info_models.dart';
 import '../models/insurance_models.dart';
 
-/// Repository coordinating Step 3 Health Information, Demographics, and Step 4 Insurance.
+/// Repository coordinating Step 3 Health Information, Demographics, Step 4 Insurance, and Step 5 Consents.
 /// Grounded strictly in OpenAPI 3.0.0 (https://360api.vnvision.in/docs).
 class OnboardingRepository {
   final ApiClient _apiClient;
@@ -16,17 +18,67 @@ class OnboardingRepository {
   bool _isSavingEmergencyContact = false;
   bool _isSavingHealthInfo = false;
   bool _isSavingInsurance = false;
+  bool _isSavingConsents = false;
+  bool _isCompletingOnboarding = false;
+  bool _isFetchingHealthCard = false;
 
   OnboardingRepository({ApiClient? apiClient, TokenStorage? tokenStorage})
     : _apiClient = apiClient ?? ApiClient(),
-      _tokenStorage = tokenStorage ?? InMemoryTokenStorage();
+      _tokenStorage = tokenStorage ?? apiClient?.tokenStorage ?? AppTokenStorage();
+
+  TokenStorage get tokenStorage => _tokenStorage;
+
+  /// Initializes a new Patient Draft Profile under the authenticated session.
+  /// POST /api/v1/patients/register (requires Bearer auth)
+  Future<ApiResult<Map<String, dynamic>>> initializeDraft() async {
+    final token = await _tokenStorage.getAccessToken();
+    if (token == null || token.isEmpty) {
+      return const ApiFailure<Map<String, dynamic>>(
+        message: 'Authentication session required. Please verify OTP first.',
+        statusCode: 401,
+      );
+    }
+
+    return _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.patientRegisterDraft,
+      requiresAuth: true,
+      fromJson: (json) {
+        if (json is Map<String, dynamic>) return json;
+        return <String, dynamic>{'status': 'DRAFT', 'onboardingStep': 1};
+      },
+    );
+  }
+
+  /// Checks Draft Registration Progress Status
+  /// GET /api/v1/patients/register/status (requires Bearer auth)
+  Future<ApiResult<Map<String, dynamic>>> getDraftStatus() async {
+    final token = await _tokenStorage.getAccessToken();
+    if (token == null || token.isEmpty) {
+      return const ApiFailure<Map<String, dynamic>>(
+        message: 'Authentication session required. Please verify OTP first.',
+        statusCode: 401,
+      );
+    }
+
+    return _apiClient.get<Map<String, dynamic>>(
+      ApiEndpoints.patientRegisterStatus,
+      requiresAuth: true,
+      fromJson: (json) {
+        if (json is Map<String, dynamic>) return json;
+        return <String, dynamic>{};
+      },
+    );
+  }
 
   bool get isSaving =>
       _isSavingMedicalSummary ||
       _isSavingDemographics ||
       _isSavingEmergencyContact ||
       _isSavingHealthInfo ||
-      _isSavingInsurance;
+      _isSavingInsurance ||
+      _isSavingConsents ||
+      _isCompletingOnboarding ||
+      _isFetchingHealthCard;
 
   /// Updates Patient Medical Summary (Blood Group, Allergies, Chronic Conditions)
   /// PATCH /api/v1/patients/me/medical-summary
@@ -292,5 +344,164 @@ class OnboardingRepository {
         return const OnboardingProgressDto();
       },
     );
+  }
+
+  /// Saves Step 5 Privacy Consents & Disclosures
+  /// POST /api/v1/patients/onboarding/health-card
+  /// Coordinated with platform security consents: POST /api/v1/security/consents
+  Future<ApiResult<Map<String, dynamic>>> saveConsents(
+    PrivacyConsentsDto dto,
+  ) async {
+    if (_isSavingConsents) {
+      return const ApiFailure<Map<String, dynamic>>(
+        message: 'A consent save operation is already in progress.',
+        statusCode: 429,
+      );
+    }
+
+    // Client-side field validation before network transmission
+    final validationError = dto.validate();
+    if (validationError != null) {
+      return ApiFailure<Map<String, dynamic>>(
+        message: validationError,
+        statusCode: 400,
+      );
+    }
+
+    _isSavingConsents = true;
+    try {
+      final token = await _tokenStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        return const ApiFailure<Map<String, dynamic>>(
+          message: 'Authentication session required. Please verify OTP first.',
+          statusCode: 401,
+        );
+      }
+
+      final result = await _apiClient.post<Map<String, dynamic>>(
+        ApiEndpoints.onboardingHealthCard,
+        body: dto.toJson(),
+        requiresAuth: true,
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) return json;
+          return <String, dynamic>{'status': 'saved', 'step': 5};
+        },
+      );
+
+      return result;
+    } finally {
+      _isSavingConsents = false;
+    }
+  }
+
+  /// Completes and Finalizes Onboarding Registration (Step 6)
+  /// POST /api/v1/patients/onboarding/complete
+  Future<ApiResult<Map<String, dynamic>>> completeOnboarding() async {
+    if (_isCompletingOnboarding) {
+      return const ApiFailure<Map<String, dynamic>>(
+        message: 'Onboarding finalization is already in progress.',
+        statusCode: 429,
+      );
+    }
+
+    _isCompletingOnboarding = true;
+    try {
+      final token = await _tokenStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        return const ApiFailure<Map<String, dynamic>>(
+          message: 'Authentication session required. Please verify OTP first.',
+          statusCode: 401,
+        );
+      }
+
+      final result = await _apiClient.post<Map<String, dynamic>>(
+        ApiEndpoints.onboardingComplete,
+        requiresAuth: true,
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) return json;
+          return <String, dynamic>{'status': 'completed', 'step': 6};
+        },
+      );
+
+      return result;
+    } finally {
+      _isCompletingOnboarding = false;
+    }
+  }
+
+  /// Retrieves active Health Card details for current authenticated patient
+  /// GET /api/v1/health-cards
+  Future<ApiResult<HealthCardDto>> getHealthCard() async {
+    if (_isFetchingHealthCard) {
+      return const ApiFailure<HealthCardDto>(
+        message: 'A health card request is already in progress.',
+        statusCode: 429,
+      );
+    }
+
+    _isFetchingHealthCard = true;
+    try {
+      final token = await _tokenStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        return const ApiFailure<HealthCardDto>(
+          message: 'Authentication session required. Please verify OTP first.',
+          statusCode: 401,
+        );
+      }
+
+      final result = await _apiClient.get<HealthCardDto>(
+        ApiEndpoints.healthCards,
+        requiresAuth: true,
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) {
+            return HealthCardDto.fromJson(json);
+          } else if (json is List &&
+              json.isNotEmpty &&
+              json.first is Map<String, dynamic>) {
+            return HealthCardDto.fromJson(json.first as Map<String, dynamic>);
+          }
+          return const HealthCardDto();
+        },
+      );
+
+      return result;
+    } finally {
+      _isFetchingHealthCard = false;
+    }
+  }
+
+  /// Issues a new Health Card for authenticated patient
+  /// POST /api/v1/health-cards
+  Future<ApiResult<HealthCardDto>> issueHealthCard({
+    String reason = 'Initial issuance during registration',
+  }) async {
+    try {
+      final token = await _tokenStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        return const ApiFailure<HealthCardDto>(
+          message: 'Authentication session required. Please verify OTP first.',
+          statusCode: 401,
+        );
+      }
+
+      final result = await _apiClient.post<HealthCardDto>(
+        ApiEndpoints.healthCards,
+        body: {'reason': reason},
+        requiresAuth: true,
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) {
+            return HealthCardDto.fromJson(json);
+          }
+          return const HealthCardDto();
+        },
+      );
+
+      return result;
+    } catch (e) {
+      return ApiFailure<HealthCardDto>(
+        message: 'Failed to issue health card: $e',
+        statusCode: 500,
+      );
+    }
   }
 }
