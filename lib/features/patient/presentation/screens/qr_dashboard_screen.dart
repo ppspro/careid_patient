@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../../../core/network/api_client.dart';
+import '../../../../shared/widgets/careid_avatar.dart';
 import '../../../../shared/widgets/careid_bottom_navigation_bar.dart';
 import '../../../../shared/widgets/careid_logo.dart';
 import '../../data/models/digital_health_card_models.dart';
@@ -177,17 +178,17 @@ class _QrDashboardScreenState extends State<QrDashboardScreen> {
                   ],
                 ),
                 // Top Right Avatar matching Figma / Screenshot
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/sarah_jenkins_avatar.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                CareIdAvatar(
+                  photoUrl: _profile?.photoUrl,
+                  size: 36,
+                  name: _profile?.fullName,
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                  tokenStorage: _patientRepo.tokenStorage,
+                  onTap: () {
+                    Navigator.of(context)
+                        .pushNamed('/patient/profile')
+                        .then((_) => _loadData());
+                  },
                 ),
               ],
             ),

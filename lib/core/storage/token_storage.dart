@@ -188,6 +188,9 @@ class AppTokenStorage implements TokenStorage {
     }
   }
 
+  /// Returns the in-memory cached access token synchronously if already initialized
+  String? get cachedAccessToken => _cachedAccessToken;
+
   @override
   Future<String?> getAccessToken() async {
     await _ensureInitialized();

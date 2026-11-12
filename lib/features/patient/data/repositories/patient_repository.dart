@@ -1,3 +1,5 @@
+import 'package:http/http.dart' as http;
+
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_result.dart';
@@ -145,16 +147,35 @@ class PatientRepository {
       fromJson: (json) => json is Map<String, dynamic> ? json : {},
     );
   }
-  /// Uploads or replaces current patient profile photo
-  /// POST /api/v1/patients/me/photo (supports multipart/form-data with JSON fallback)
+  /// Uploads or replaces current patient profile photo.
+  /// Supports direct image file/bytes upload via multipart ('file' field)
+  /// as well as JSON/form-field photoUrl & photoKey contracts.
+  /// POST /api/v1/patients/me/photo
   Future<ApiResult<Map<String, dynamic>>> updateProfilePhoto({
-    required String photoUrl,
-    required String photoKey,
+    String? photoUrl,
+    String? photoKey,
+    List<int>? bytes,
+    String? filePath,
+    String? fileName,
   }) async {
-    final fields = {
-      'photoUrl': photoUrl.trim(),
-      'photoKey': photoKey.trim(),
-    };
+    // 1. If physical image file or bytes provided, perform multipart file upload
+    if ((bytes != null && bytes.isNotEmpty) || (filePath != null && filePath.isNotEmpty)) {
+      return uploadProfilePhotoFile(
+        bytes: bytes,
+        filePath: filePath,
+        fileName: fileName,
+      );
+    }
+
+    // 2. Fallback to URL/key field update
+    final fields = <String, String>{};
+    if (photoUrl != null && photoUrl.trim().isNotEmpty) {
+      fields['photoUrl'] = photoUrl.trim();
+    }
+    if (photoKey != null && photoKey.trim().isNotEmpty) {
+      fields['photoKey'] = photoKey.trim();
+    }
+
     try {
       final res = await _apiClient.postMultipart<Map<String, dynamic>>(
         ApiEndpoints.patientPhoto,
@@ -171,6 +192,45 @@ class PatientRepository {
       body: fields,
       fromJson: (json) => json is Map<String, dynamic> ? json : {},
     );
+  }
+
+  /// Direct multipart file upload to backend: POST /api/v1/patients/me/photo
+  /// Attaches multipart field 'file' as required by NestJS FileInterceptor('file')
+  Future<ApiResult<Map<String, dynamic>>> uploadProfilePhotoFile({
+    List<int>? bytes,
+    String? filePath,
+    String? fileName,
+  }) async {
+    try {
+      http.MultipartFile? multipartFile;
+
+      if (filePath != null && filePath.isNotEmpty) {
+        multipartFile = await http.MultipartFile.fromPath(
+          'file',
+          filePath,
+          filename: fileName,
+        );
+      } else if (bytes != null && bytes.isNotEmpty) {
+        multipartFile = http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: fileName ?? 'profile_photo.jpg',
+        );
+      }
+
+      if (multipartFile == null) {
+        return const ApiFailure(message: 'No image file or bytes provided');
+      }
+
+      return await _apiClient.postMultipart<Map<String, dynamic>>(
+        ApiEndpoints.patientPhoto,
+        requiresAuth: true,
+        files: [multipartFile],
+        fromJson: (json) => json is Map<String, dynamic> ? json : {},
+      );
+    } catch (e) {
+      return ApiFailure(message: 'Failed to upload image file: $e', error: e);
+    }
   }
 
   /// Deletes current patient profile photo

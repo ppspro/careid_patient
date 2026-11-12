@@ -1,11 +1,13 @@
-import '../../../../shared/widgets/primary_button.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_result.dart';
 import '../../../../core/storage/token_storage.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/careid_avatar.dart';
+import '../../../../shared/widgets/primary_button.dart';
 import '../../../auth/data/models/registration_context.dart';
 import '../../../auth/data/repositories/auth_repository.dart';
 import '../../../onboarding/presentation/screens/welcome_screen.dart';
@@ -57,6 +59,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   bool _isLoading = false;
   bool _isLoggingOut = false;
   bool _isBiometricsEnabled = true;
+  bool _isUploadingPhoto = false;
+  String? _photoCacheBuster;
 
   bool get _isEn => _currentLanguage == 'en';
 
@@ -338,6 +342,67 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     }
   }
 
+  Future<void> _pickAndUploadPhoto(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null || !mounted) return;
+
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      final bytes = await pickedFile.readAsBytes();
+      final res = await _patientRepository.uploadProfilePhotoFile(
+        bytes: bytes,
+        fileName: pickedFile.name,
+      );
+
+      if (!mounted) return;
+
+      if (res.isSuccess) {
+        setState(() {
+          _photoCacheBuster = DateTime.now().millisecondsSinceEpoch.toString();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEn ? 'Profile photo updated successfully!' : '¡Foto de perfil actualizada con éxito!'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+        await _loadProfileData();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res.messageOrNull ?? (_isEn ? 'Failed to upload photo' : 'Error al subir foto')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEn ? 'Error selecting image: $e' : 'Error al seleccionar imagen: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+      }
+    }
+  }
+
   void _showPhotoActionSheet() {
     final hasPhoto = _profile?.photoUrl != null && _profile!.photoUrl!.isNotEmpty;
 
@@ -358,9 +423,27 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.cloud_upload_rounded, color: Color(0xFF5B14B8)),
-                title: Text(_isEn ? 'Update / Upload Profile Photo' : 'Actualizar / Subir Foto de Perfil'),
-                subtitle: Text(_isEn ? 'Enter photo URL or use verified avatar' : 'Ingresa URL o usa avatar verificado'),
+                leading: const Icon(Icons.photo_library_rounded, color: Color(0xFF5B14B8)),
+                title: Text(_isEn ? 'Choose from Gallery' : 'Elegir de la Galería'),
+                subtitle: Text(_isEn ? 'Upload an image from your device' : 'Sube una imagen desde tu dispositivo'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAndUploadPhoto(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_rounded, color: Color(0xFF00838F)),
+                title: Text(_isEn ? 'Take Photo' : 'Tomar Foto'),
+                subtitle: Text(_isEn ? 'Use camera to capture new photo' : 'Usa la cámara para tomar una foto'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickAndUploadPhoto(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.link_rounded, color: Colors.blueGrey),
+                title: Text(_isEn ? 'Enter Photo URL' : 'Ingresar URL de Foto'),
+                subtitle: Text(_isEn ? 'Use web link or verified URL' : 'Usa un enlace web o URL verificada'),
                 onTap: () {
                   Navigator.pop(ctx);
                   _showUpdatePhotoDialog();
@@ -385,9 +468,18 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     );
 
                     if (confirm == true) {
+                      setState(() {
+                        _isUploadingPhoto = true;
+                      });
                       final delRes = await _patientRepository.deleteProfilePhoto();
                       if (mounted) {
+                        setState(() {
+                          _isUploadingPhoto = false;
+                        });
                         if (delRes.isSuccess) {
+                          setState(() {
+                            _photoCacheBuster = DateTime.now().millisecondsSinceEpoch.toString();
+                          });
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(_isEn ? 'Profile photo removed.' : 'Foto eliminada.')),
                           );
@@ -443,9 +535,18 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
               if (url.isEmpty) return;
               Navigator.pop(ctx);
               final key = 'avatars/${_profile?.id ?? "patient"}.jpg';
+              setState(() {
+                _isUploadingPhoto = true;
+              });
               final res = await _patientRepository.updateProfilePhoto(photoUrl: url, photoKey: key);
               if (mounted) {
+                setState(() {
+                  _isUploadingPhoto = false;
+                });
                 if (res.isSuccess) {
+                  setState(() {
+                    _photoCacheBuster = DateTime.now().millisecondsSinceEpoch.toString();
+                  });
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(_isEn ? 'Profile photo updated!' : '¡Foto actualizada!')),
                   );
@@ -780,16 +881,32 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                         ),
                       ],
                     ),
-                    child: ClipOval(
-                      child: (_profile?.photoUrl != null && _profile!.photoUrl!.isNotEmpty)
-                          ? Image.network(
-                              _profile!.photoUrl!,
-                              width: 105,
-                              height: 105,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildAvatarFallback(),
-                            )
-                          : _buildAvatarFallback(),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CareIdAvatar(
+                          photoUrl: _profile?.photoUrl,
+                          size: 105,
+                          name: _profile?.fullName,
+                          cacheBuster: _photoCacheBuster,
+                          tokenStorage: _patientRepository.tokenStorage,
+                        ),
+                        if (_isUploadingPhoto)
+                          Container(
+                            width: 105,
+                            height: 105,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black45,
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -898,30 +1015,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     );
   }
 
-  Widget _buildAvatarFallback() {
-    return Image.asset(
-      'assets/images/sarah_jenkins_avatar.png',
-      width: 105,
-      height: 105,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        width: 105,
-        height: 105,
-        color: const Color(0xFFEDE9FE),
-        child: const Center(
-          child: Text(
-            'SJ',
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF5B14B8),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+
 
   /// Horizontal Status Cards matching Figma 20:24228 & Reference Image 1
   Widget _buildStatusCardsSection() {

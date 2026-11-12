@@ -334,7 +334,7 @@ class ApiClient {
       }
 
       final streamedResponse =
-          await request.send().timeout(AppConfig.connectTimeout);
+          await _httpClient.send(request).timeout(AppConfig.connectTimeout);
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 401 && requiresAuth) {
@@ -348,7 +348,7 @@ class ApiClient {
           if (files != null) retryRequest.files.addAll(files);
 
           final retryStreamed =
-              await retryRequest.send().timeout(AppConfig.connectTimeout);
+              await _httpClient.send(retryRequest).timeout(AppConfig.connectTimeout);
           final retryResponse = await http.Response.fromStream(retryStreamed);
           return _handleResponse<T>(retryResponse, fromJson);
         } else {

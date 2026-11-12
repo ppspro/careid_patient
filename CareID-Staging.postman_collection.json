@@ -9632,6 +9632,64 @@
           }
         },
         {
+          "id": "c7a8b9d0-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
+          "name": "Export complete unified clinical medical record (PDF/JSON)",
+          "request": {
+            "name": "Export complete unified clinical medical record (PDF/JSON)",
+            "description": "**[Classification: Implemented — source verified]**  \nUnified clinical medical record export for authorized patient profiles. Generates standard PDF 1.4 binary stream with format=PDF or Accept: application/pdf header, or structured JSON clinical payload by default.",
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "doctors",
+                "patients",
+                ":patientProfileId",
+                "medical-records",
+                "export"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "format",
+                  "value": "PDF",
+                  "description": "Export format: PDF (binary stream) or JSON"
+                }
+              ],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "{{patientId}}",
+                  "key": "patientProfileId",
+                  "description": "(Required) Patient Profile UUID"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/v1/doctors/patients/:patientProfileId/medical-records/export?format=PDF"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/pdf"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "id": "f59340bc-3c67-4e7f-af5b-4f4e1c30d248",
           "name": "Get authorized patient medical record timeline",
           "request": {
@@ -15327,6 +15385,107 @@
           ],
           "protocolProfileBehavior": {
             "disableBodyPruning": true
+          }
+        },
+        {
+          "name": "Stage 8: Get Offer Acceptance Certificate (Doctor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/doctors/treatment-offers/{{offer_id}}/acceptance-certificate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "doctors",
+                "treatment-offers",
+                "{{offer_id}}",
+                "acceptance-certificate"
+              ]
+            },
+            "description": "Stage 8: Retrieves cryptographically verified acceptance certificate with SHA-256 hash for ratified offer."
+          }
+        },
+        {
+          "name": "Stage 9: Get Multidisciplinary Pre-Op Clearance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/treatment-offers/{{offer_id}}/clearance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "treatment-offers",
+                "{{offer_id}}",
+                "clearance"
+              ]
+            },
+            "description": "Stage 9: Retrieves 5-domain clearance checklist (Cardiology, Anesthesia, Medical, Surgical, Lab)."
+          }
+        },
+        {
+          "name": "Stage 9: Update Multidisciplinary Pre-Op Clearance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardiologyClearance\": {\n    \"status\": \"CLEARED\",\n    \"notes\": \"ECG and Echo normal, LVEF 60%\"\n  },\n  \"anesthesiaClearance\": {\n    \"status\": \"CLEARED\",\n    \"notes\": \"Mallampati Class 1, airway clear\"\n  },\n  \"medicalClearance\": {\n    \"status\": \"CLEARED\",\n    \"notes\": \"Diabetic and hypertensive control optimal\"\n  },\n  \"surgicalClearance\": {\n    \"status\": \"CLEARED\",\n    \"notes\": \"Procedural consent signed, site marked\"\n  },\n  \"labClearance\": {\n    \"status\": \"CLEARED\",\n    \"notes\": \"CBC, BMP, PT/INR within normal limits\"\n  },\n  \"notes\": \"Multidisciplinary clearance complete for PCI suite\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/treatment-offers/{{offer_id}}/clearance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "treatment-offers",
+                "{{offer_id}}",
+                "clearance"
+              ]
+            },
+            "description": "Stage 9: Updates clearance domains. Automatically marks overallStatus to CLEARED when all domains are cleared."
           }
         }
       ]
@@ -26226,6 +26385,78 @@
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           }
+        },
+        {
+          "name": "Stage 17: Document Intra-Operative Procedure Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Percutaneous coronary intervention of LAD with drug-eluting stent\",\n  \"code\": \"92928\",\n  \"notes\": \"Successful deployment of 3.0 x 18 mm DES with TIMI 3 flow and 0% residual stenosis\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/encounters/{{encounter_id}}/procedures",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "encounters",
+                "{{encounter_id}}",
+                "procedures"
+              ]
+            },
+            "description": "Stage 17: Documents intra-op procedure findings, devices, and CPT code."
+          }
+        },
+        {
+          "name": "Stage 18: Record Intra-Operative Hemodynamics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"systolicBp\": 122,\n  \"diastolicBp\": 78,\n  \"pulseBpm\": 70,\n  \"respirationRate\": 14,\n  \"oxygenSaturation\": 99,\n  \"temperatureC\": 36.7\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/encounters/{{encounter_id}}/hemodynamics",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "encounters",
+                "{{encounter_id}}",
+                "hemodynamics"
+              ]
+            },
+            "description": "Stage 18: Records real-time vitals and hemodynamics during procedural intervention."
+          }
         }
       ]
     },
@@ -28827,6 +29058,33 @@
           ],
           "protocolProfileBehavior": {
             "disableBodyPruning": true
+          }
+        },
+        {
+          "name": "Phase 9: Get Facility Chargemaster Schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/facilities/{{facility_id}}/chargemaster",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "facilities",
+                "{{facility_id}}",
+                "chargemaster"
+              ]
+            },
+            "description": "Phase 9: Retrieves facility procedure chargemaster and pricing schedule."
           }
         }
       ]
@@ -32929,6 +33187,257 @@
           ],
           "protocolProfileBehavior": {
             "disableBodyPruning": true
+          }
+        },
+        {
+          "name": "Stage 11: Create Temporary Procedure Slot Hold",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"facilityId\": \"{{facility_id}}\",\n  \"slotId\": \"{{slot_id}}\",\n  \"procedureCategory\": \"CATH_LAB\",\n  \"holdDurationMinutes\": 45\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/holds",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "holds"
+              ]
+            },
+            "description": "Stage 11: Places a 45-minute concurrency-safe hold on a procedure suite slot."
+          }
+        },
+        {
+          "name": "Stage 11: Get Temporary Slot Hold Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/holds/{{hold_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "holds",
+                "{{hold_id}}"
+              ]
+            },
+            "description": "Stage 11: Inspects remaining hold seconds and status."
+          }
+        },
+        {
+          "name": "Stage 11: Release Temporary Slot Hold",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/holds/{{hold_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "holds",
+                "{{hold_id}}"
+              ]
+            },
+            "description": "Stage 11: Releases temporary hold early, returning slot to AVAILABLE."
+          }
+        },
+        {
+          "name": "Stage 14: Get Pre-Op Day -1 Readiness Checklist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/readiness",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "{{appointment_id}}",
+                "readiness"
+              ]
+            },
+            "description": "Stage 14: Inspects fasting, medication hold, transportation, consent, and GO/NO_GO decision."
+          }
+        },
+        {
+          "name": "Stage 14: Update Pre-Op Day -1 Readiness Checklist & Decision",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fastingConfirmed\": true,\n  \"medicationHoldConfirmed\": true,\n  \"transportationArranged\": true,\n  \"consentVerified\": true,\n  \"vitalsWithinThreshold\": true,\n  \"decision\": \"GO\",\n  \"notes\": \"Patient ready for procedure suite admission\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/readiness",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "{{appointment_id}}",
+                "readiness"
+              ]
+            },
+            "description": "Stage 14: Submits clinical decision GO/NO_GO."
+          }
+        },
+        {
+          "name": "Stage 15: Day of Procedure Patient Check-In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staff_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bedOrBayNumber\": \"PRE-OP-BAY-03\",\n  \"vitals\": {\n    \"bloodPressure\": \"124/82\",\n    \"heartRate\": 72,\n    \"oxygenSaturation\": 99,\n    \"temperature\": 36.6\n  },\n  \"notes\": \"Patient checked in at pre-op intake desk\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/check-in",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "{{appointment_id}}",
+                "check-in"
+              ]
+            },
+            "description": "Stage 15: Intake check-in. Transitions appointment status to IN_PROGRESS."
+          }
+        },
+        {
+          "name": "Stage 16: Get Cath Lab Safety Checklist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/cath-lab-checklist",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "{{appointment_id}}",
+                "cath-lab-checklist"
+              ]
+            },
+            "description": "Stage 16: WHO Surgical Safety Checklist for procedure suite."
+          }
+        },
+        {
+          "name": "Stage 16: Update Cath Lab Safety Checklist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signIn\": {\n    \"patientIdentityConfirmed\": true,\n    \"siteMarked\": true,\n    \"anesthesiaSafetyCheckCompleted\": true,\n    \"pulseOximeterOn\": true,\n    \"allergiesChecked\": true\n  },\n  \"timeOut\": {\n    \"allTeamMembersIntroduced\": true,\n    \"patientNameProcedureSiteConfirmed\": true,\n    \"anticipatedCriticalEventsReviewed\": true,\n    \"antibioticProphylaxisAdministered\": true,\n    \"imagingDisplayed\": true\n  },\n  \"signOut\": {\n    \"procedureNameRecorded\": true,\n    \"instrumentSpongeNeedleCountsCorrect\": true,\n    \"specimenLabeled\": true,\n    \"equipmentProblemsAddressed\": true,\n    \"keyPostOpConcernsReviewed\": true\n  },\n  \"overallStatus\": \"COMPLETED\",\n  \"notes\": \"Cath lab safety checklist fully verified\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/cath-lab-checklist",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "appointments",
+                "{{appointment_id}}",
+                "cath-lab-checklist"
+              ]
+            },
+            "description": "Stage 16: Records completed WHO checklist verification."
           }
         }
       ]
@@ -52460,133 +52969,6 @@
           }
         },
         {
-          "id": "f340da78-e65d-408c-83ec-a14c559e1a3e",
-          "name": "List security audit logs",
-          "request": {
-            "name": "List security audit logs",
-            "description": "**[Classification: Implemented — source verified]**  \n100% test passing in local regression suite. Runtime verification pending staging server deployment.\n\n---\n[object Object]",
-            "url": {
-              "path": [
-                "api",
-                "v1",
-                "security",
-                "audit"
-              ],
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "query": [
-                {
-                  "disabled": false,
-                  "key": "userId",
-                  "value": "string"
-                },
-                {
-                  "disabled": false,
-                  "key": "resource",
-                  "value": "string"
-                }
-              ],
-              "variable": [],
-              "raw": "{{baseUrl}}/api/v1/security/audit?userId=string&resource=string"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": [
-            {
-              "id": "b2b05907-fdfc-4193-8e09-d50a690c92a5",
-              "originalRequest": {
-                "url": {
-                  "path": [
-                    "api",
-                    "v1",
-                    "security",
-                    "audit"
-                  ],
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "userId",
-                      "value": "string"
-                    },
-                    {
-                      "key": "resource",
-                      "value": "string"
-                    }
-                  ],
-                  "variable": []
-                },
-                "header": [
-                  {
-                    "description": {
-                      "content": "Added as a part of security scheme: bearer",
-                      "type": "text/plain"
-                    },
-                    "key": "Authorization",
-                    "value": "Bearer <token>"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "method": "GET",
-                "body": {}
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "[\n  {\n    \"id\": \"string\",\n    \"userId\": \"string\",\n    \"action\": \"string\",\n    \"resource\": \"string\",\n    \"resourceId\": \"string\",\n    \"ipAddress\": \"string\",\n    \"userAgent\": \"string\",\n    \"result\": \"string\",\n    \"details\": \"string\",\n    \"createdAt\": \"string\"\n  },\n  {\n    \"id\": \"string\",\n    \"userId\": \"string\",\n    \"action\": \"string\",\n    \"resource\": \"string\",\n    \"resourceId\": \"string\",\n    \"ipAddress\": \"string\",\n    \"userAgent\": \"string\",\n    \"result\": \"string\",\n    \"details\": \"string\",\n    \"createdAt\": \"string\"\n  }\n]",
-              "cookie": [],
-              "_postman_previewlanguage": "json"
-            }
-          ],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 2xx\", function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
-                  "});",
-                  "pm.test(\"Response is valid JSON format\", function () {",
-                  "    if (pm.response.code !== 204) {",
-                  "        pm.response.to.be.json;",
-                  "    }",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          }
-        },
-        {
           "id": "b1c8fc10-9c56-4c99-8a5c-d20b4eb236f5",
           "name": "Create API key for developer / partner system integration",
           "request": {
@@ -53190,6 +53572,546 @@
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           }
+        },
+        {
+          "name": "Security Audit",
+          "description": "Doctor-scoped and administrative security audit history access verification with role-based isolation (DOCTOR, ADMIN, SUPER_ADMIN, PATIENT, FACILITY_ADMIN, Unauthenticated).",
+          "item": [
+            {
+              "name": "A. Doctor — Own Audit Logs",
+              "request": {
+                "name": "A. Doctor — Own Audit Logs",
+                "description": "Authenticated DOCTOR requests own security audit history without query parameters. Records are scoped strictly using the authenticated JWT subject mapped to the doctor User ID. Response must not expose credentials, password hashes, access tokens, refresh tokens, or cookies.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{doctorToken}}"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{doctorToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Response is valid JSON array\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.true;",
+                      "});",
+                      "pm.test(\"Response schema conforms to SecurityAuditLogResponseDto\", function () {",
+                      "    const data = pm.response.json();",
+                      "    if (data.length > 0) {",
+                      "        const record = data[0];",
+                      "        pm.expect(record).to.have.property(\"id\");",
+                      "        pm.expect(record).to.have.property(\"action\");",
+                      "        pm.expect(record).to.have.property(\"resource\");",
+                      "        pm.expect(record).to.have.property(\"result\");",
+                      "        pm.expect(record).to.have.property(\"createdAt\");",
+                      "    }",
+                      "});",
+                      "pm.test(\"Doctor Self-Scope Verification — logs belong only to authenticated doctor\", function () {",
+                      "    const data = pm.response.json();",
+                      "    const docId = pm.environment.get(\"doctorUserId\") || pm.collectionVariables.get(\"doctorUserId\");",
+                      "    if (docId && data.length > 0) {",
+                      "        pm.expect(data.every(item => !item.userId || item.userId === docId)).to.be.true;",
+                      "    }",
+                      "});",
+                      "pm.test(\"Zero Credential Leakage — passwords, hashes, tokens, cookies excluded\", function () {",
+                      "    const text = pm.response.text().toLowerCase();",
+                      "    pm.expect(text).to.not.include(\"password\");",
+                      "    pm.expect(text).to.not.include(\"passwordhash\");",
+                      "    pm.expect(text).to.not.include(\"bearer \");",
+                      "    pm.expect(text).to.not.include(\"sessiontoken\");",
+                      "    pm.expect(text).to.not.include(\"refreshtoken\");",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "B. Doctor — Explicit Own User ID",
+              "request": {
+                "name": "B. Doctor — Explicit Own User ID",
+                "description": "Authenticated DOCTOR requests own audit history explicitly passing their own userId as query param. Returns 200 OK with records strictly belonging to the authenticated doctor.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit?userId={{doctorUserId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [
+                    {
+                      "key": "userId",
+                      "value": "{{doctorUserId}}",
+                      "description": "Target doctor user ID (must match authenticated JWT subject for DOCTOR role)"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{doctorToken}}"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{doctorToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Response is valid JSON array\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.true;",
+                      "});",
+                      "pm.test(\"Doctor Explicit User ID — all records strictly match doctorUserId\", function () {",
+                      "    const data = pm.response.json();",
+                      "    const docId = pm.environment.get(\"doctorUserId\") || pm.collectionVariables.get(\"doctorUserId\");",
+                      "    if (docId && data.length > 0) {",
+                      "        pm.expect(data.every(item => item.userId === docId)).to.be.true;",
+                      "    }",
+                      "});",
+                      "pm.test(\"Zero Credential Leakage — passwords, hashes, tokens excluded\", function () {",
+                      "    const text = pm.response.text().toLowerCase();",
+                      "    pm.expect(text).to.not.include(\"password\");",
+                      "    pm.expect(text).to.not.include(\"passwordhash\");",
+                      "    pm.expect(text).to.not.include(\"refreshtoken\");",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "C. Doctor — Cross-User Access Protection",
+              "request": {
+                "name": "C. Doctor — Cross-User Access Protection",
+                "description": "Authenticated DOCTOR attempts cross-user audit log inspection by supplying a different user ID (otherUserId != doctorUserId). Request must be rejected with HTTP 403 Forbidden before querying the audit repository. No other user audit data is disclosed.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit?userId={{otherUserId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [
+                    {
+                      "key": "userId",
+                      "value": "{{otherUserId}}",
+                      "description": "Disallowed cross-user ID (must differ from doctorUserId)"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{doctorToken}}"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{doctorToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 403 Forbidden (cross-user access protection)\", function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "pm.test(\"Cross-User Request Sanity — otherUserId must differ from doctorUserId\", function () {",
+                      "    const docId = pm.environment.get(\"doctorUserId\") || pm.collectionVariables.get(\"doctorUserId\");",
+                      "    const otherId = pm.environment.get(\"otherUserId\") || pm.collectionVariables.get(\"otherUserId\");",
+                      "    if (docId && otherId) {",
+                      "        pm.expect(otherId).to.not.equal(docId);",
+                      "    }",
+                      "});",
+                      "pm.test(\"Zero Data Disclosure — cross-user request rejected before query without leaking data\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.false;",
+                      "    pm.expect(data.statusCode || pm.response.code).to.equal(403);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "D. Admin — Platform-Wide Audit",
+              "request": {
+                "name": "D. Admin — Platform-Wide Audit",
+                "description": "Authenticated ADMIN retrieves platform security audit logs with platform-wide visibility. Returns 200 OK.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{adminToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Admin platform audit returns valid array\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.true;",
+                      "});",
+                      "pm.test(\"Response schema conforms to SecurityAuditLogResponseDto\", function () {",
+                      "    const data = pm.response.json();",
+                      "    if (data.length > 0) {",
+                      "        const record = data[0];",
+                      "        pm.expect(record).to.have.property(\"id\");",
+                      "        pm.expect(record).to.have.property(\"action\");",
+                      "        pm.expect(record).to.have.property(\"resource\");",
+                      "    }",
+                      "});",
+                      "pm.test(\"Zero Credential Leakage — passwords, hashes, tokens excluded\", function () {",
+                      "    const text = pm.response.text().toLowerCase();",
+                      "    pm.expect(text).to.not.include(\"password\");",
+                      "    pm.expect(text).to.not.include(\"sessiontoken\");",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "E. Super Admin — Platform-Wide Audit",
+              "request": {
+                "name": "E. Super Admin — Platform-Wide Audit",
+                "description": "Authenticated SUPER_ADMIN retrieves platform security audit logs with full visibility across all actors. Returns 200 OK.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{superAdminToken}}"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{superAdminToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test(\"Super Admin platform audit returns valid array\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.true;",
+                      "});",
+                      "pm.test(\"Zero Credential Leakage — passwords, hashes, tokens excluded\", function () {",
+                      "    const text = pm.response.text().toLowerCase();",
+                      "    pm.expect(text).to.not.include(\"password\");",
+                      "    pm.expect(text).to.not.include(\"sessiontoken\");",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "F. Patient — Forbidden",
+              "request": {
+                "name": "F. Patient — Forbidden",
+                "description": "Authenticated PATIENT role attempts to access security audit endpoint. Must be rejected with HTTP 403 Forbidden.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{patientToken}}"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{patientToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 403 Forbidden (patient audit access denied)\", function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "pm.test(\"Patient rejection returns standard error response\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.false;",
+                      "    pm.expect(data.statusCode || pm.response.code).to.equal(403);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "G. Facility Admin — Forbidden",
+              "request": {
+                "name": "G. Facility Admin — Forbidden",
+                "description": "Authenticated FACILITY_ADMIN role attempts to access security audit endpoint. Must be rejected with HTTP 403 Forbidden.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{facilityAdminToken}}"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{facilityAdminToken}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 403 Forbidden (facility admin audit access denied)\", function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "pm.test(\"Facility admin rejection returns standard error response\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.false;",
+                      "    pm.expect(data.statusCode || pm.response.code).to.equal(403);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "H. Unauthenticated — Unauthorized",
+              "request": {
+                "name": "H. Unauthenticated — Unauthorized",
+                "description": "Unauthenticated request without Bearer token. Must be rejected with HTTP 401 Unauthorized.",
+                "url": {
+                  "raw": "{{baseUrl}}/security/audit",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "security",
+                    "audit"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized (unauthenticated access denied)\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "pm.test(\"Unauthenticated rejection returns standard error response\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(Array.isArray(data)).to.be.false;",
+                      "    pm.expect(data.statusCode || pm.response.code).to.equal(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -74777,6 +75699,508 @@
           }
         }
       ]
+    },
+    {
+      "name": "28. CPT & Procedure Catalogue",
+      "item": [
+        {
+          "name": "List CPT Procedure Codes (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cpt?category=CARDIOLOGY&page=1&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cpt"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "CARDIOLOGY"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Lists standardized CPT codes with category filtering."
+          }
+        },
+        {
+          "name": "Search CPT Codes by Keyword",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cpt/search?q=catheterization",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cpt",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "catheterization"
+                }
+              ]
+            },
+            "description": "Search CPT catalogue by code or keyword."
+          }
+        },
+        {
+          "name": "Get CPT Code Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cpt/93458",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cpt",
+                "93458"
+              ]
+            },
+            "description": "Get CPT definition, RVU, and clinical category."
+          }
+        }
+      ]
+    },
+    {
+      "name": "29. Cath Lab & Interventional Cardiology",
+      "item": [
+        {
+          "name": "Stage 16: Ratify Surgical Safety Time-Out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"{{appointment_id}}\",\n  \"treatmentOfferId\": \"{{offer_id}}\",\n  \"circulatingNurseId\": \"nurse-uuid-001\",\n  \"anesthesiaProviderId\": \"anesthetist-uuid-002\",\n  \"gates\": {\n    \"patientIdentityConfirmed\": true,\n    \"procedureConfirmed\": true,\n    \"accessSiteConfirmed\": true,\n    \"consentAndAnticoagulationVerified\": true,\n    \"equipmentAndEmergencyPrepared\": true,\n    \"radiationAndShieldingVerified\": true\n  },\n  \"notes\": \"Pre-puncture time-out complete. Right radial access prepped. Heparin 5000 IU given.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/safety-timeout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "safety-timeout"
+              ]
+            },
+            "description": "Stage 16: Pre-puncture active multidisciplinary surgical safety time-out ratification with SHA-256 integrity hash."
+          }
+        },
+        {
+          "name": "Stage 16: Get Ratified Safety Time-Out Record",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/safety-timeout/{{appointment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "safety-timeout",
+                "{{appointment_id}}"
+              ]
+            },
+            "description": "Stage 16: Retrieves the ratified surgical safety time-out document and cryptographic checksum."
+          }
+        },
+        {
+          "name": "Stage 16-17: Declare Emergency Safety Hold",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"{{appointment_id}}\",\n  \"holdCategory\": \"PATIENT_HEMODYNAMIC_INSTABILITY\",\n  \"reason\": \"Sudden transient bradycardia during catheter engagement\",\n  \"clinicalNotes\": \"Atropine drawn, paused procedure.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/safety-hold",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "safety-hold"
+              ]
+            },
+            "description": "Stage 16–17: Declares procedural safety hold. Blocks concurrent actions until cleared."
+          }
+        },
+        {
+          "name": "Stage 16-17: Clear Emergency Safety Hold",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolutionNotes\": \"Atropine administered, rhythm returned to normal sinus, BP 120/80. Resumed procedure.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/safety-hold/{{safety_hold_id}}/clear",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "safety-hold",
+                "{{safety_hold_id}}",
+                "clear"
+              ]
+            },
+            "description": "Stage 16–17: Clears active safety hold and records resolution duration."
+          }
+        },
+        {
+          "name": "Stage 16-17: Get Active Emergency Safety Hold",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/safety-hold/active?appointmentId={{appointment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "safety-hold",
+                "active"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{appointment_id}}"
+                }
+              ]
+            },
+            "description": "Stage 16–17: Checks whether appointment has an active unresolved safety hold."
+          }
+        },
+        {
+          "name": "Stage 17-18: Log Telemetry & Radiation Observation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"{{appointment_id}}\",\n  \"fluoroscopyDurationSeconds\": 480,\n  \"doseAreaProductDap\": 32000,\n  \"contrastVolumeMl\": 80,\n  \"contrastAgent\": \"Iohexol 350\",\n  \"activatedClottingTimeSeconds\": 285,\n  \"systolicBp\": 122,\n  \"diastolicBp\": 78,\n  \"heartRate\": 72,\n  \"oxygenSaturation\": 99,\n  \"sourceDevice\": \"MANUAL_ENTRY\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/telemetry/log",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "telemetry",
+                "log"
+              ]
+            },
+            "description": "Stage 17–18: Logs fluoroscopy time, DAP radiation, contrast volume, ACT, and vitals."
+          }
+        },
+        {
+          "name": "Stage 17-18: Get Live Telemetry & Radiation Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/telemetry/live?appointmentId={{appointment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "telemetry",
+                "live"
+              ],
+              "query": [
+                {
+                  "key": "appointmentId",
+                  "value": "{{appointment_id}}"
+                }
+              ]
+            },
+            "description": "Stage 17–18: Cumulative totals for contrast, fluoroscopy time, DAP, and latest vitals."
+          }
+        },
+        {
+          "name": "Stage 18: Document Coronary Vessel Findings (QCA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coronaryDominance\": \"RIGHT\",\n  \"lvefPercentage\": 55,\n  \"hemostasisMethod\": \"RADIAL_BAND\",\n  \"findings\": [\n    {\n      \"vessel\": \"LAD\",\n      \"segment\": \"MID\",\n      \"stenosisPercentage\": 90,\n      \"timiFlowPre\": \"TIMI_1\",\n      \"timiFlowPost\": \"TIMI_3\",\n      \"calcification\": \"MODERATE\",\n      \"lesionType\": \"TYPE_B2\",\n      \"interventionPerformed\": true,\n      \"stentDetails\": \"Promus PREMIER 3.0 x 24 mm DES deployed at 14 atm\"\n    }\n  ],\n  \"summary\": \"Primary PCI to mid LAD successful. TIMI 3 flow restored with 0% residual stenosis.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/encounters/{{encounter_id}}/vessel-findings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "encounters",
+                "{{encounter_id}}",
+                "vessel-findings"
+              ]
+            },
+            "description": "Stage 18: Documents detailed coronary vessel lesion analysis, TIMI flow, and dominance."
+          }
+        },
+        {
+          "name": "Stage 18: Get Coronary Vessel Findings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/encounters/{{encounter_id}}/vessel-findings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "encounters",
+                "{{encounter_id}}",
+                "vessel-findings"
+              ]
+            },
+            "description": "Stage 18: Retrieves recorded coronary vessel lesion findings for encounter."
+          }
+        },
+        {
+          "name": "Stage 18: Register DICOM Angiography Series Metadata",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studyInstanceUid\": \"1.2.840.10008.5.1.4.1.1.12.1.20261110.001\",\n  \"seriesInstanceUid\": \"1.2.840.10008.5.1.4.1.1.12.1.20261110.001.01\",\n  \"modality\": \"XA\",\n  \"seriesDescription\": \"LAD Cranial 30/30 Run 02\",\n  \"numberOfFrames\": 64,\n  \"keyFrameNumbers\": [\n    16,\n    32,\n    48\n  ],\n  \"kvp\": 75,\n  \"exposureTimeMs\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/encounters/{{encounter_id}}/dicom-series",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "encounters",
+                "{{encounter_id}}",
+                "dicom-series"
+              ]
+            },
+            "description": "Stage 18: Registers DICOM study/series acquisition metadata for angiography."
+          }
+        },
+        {
+          "name": "Stage 18: List DICOM Series for Encounter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/encounters/{{encounter_id}}/dicom-series",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "encounters",
+                "{{encounter_id}}",
+                "dicom-series"
+              ]
+            },
+            "description": "Stage 18: Lists registered DICOM series for encounter."
+          }
+        },
+        {
+          "name": "Stage 18: Retrieve DICOM Keyframe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cath-lab/dicom-series/{{series_id}}/frames/12",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cath-lab",
+                "dicom-series",
+                "{{series_id}}",
+                "frames",
+                "12"
+              ]
+            },
+            "description": "Stage 18: Retrieves single cine keyframe. (Reports BLOCKED_BY_EXTERNAL_DEPENDENCY if PACS node is offline)."
+          }
+        }
+      ]
     }
   ],
   "event": [
@@ -74785,10 +76209,16 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Defensive URL Normalizer: Supports baseUrl with or without /api/v1 suffix",
-          "let currentBase = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\") || \"https://360api.vnvision.in/api/v1\";",
-          "if (currentBase.endsWith(\"/api/v1\")) {",
-          "    pm.variables.set(\"baseUrl\", currentBase.replace(/\\/api\\/v1\\/?$/, \"\"));",
+          "// Defensive URL Normalizer: Supports baseUrl with or without /api/v1 suffix across all request styles",
+          "const rawBase = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\") || \"https://360api.vnvision.in/api/v1\";",
+          "const cleanRoot = rawBase.replace(/\\/api\\/v1\\/?$/, \"\");",
+          "const urlPath = pm.request.url.getPath();",
+          "if (urlPath.startsWith(\"/api/v1\") || urlPath.startsWith(\"api/v1\")) {",
+          "    // Request explicitly includes /api/v1 in path -> use clean root host",
+          "    pm.variables.set(\"baseUrl\", cleanRoot);",
+          "} else {",
+          "    // Request begins with module path (e.g. /security/audit) -> ensure baseUrl includes /api/v1",
+          "    pm.variables.set(\"baseUrl\", cleanRoot + \"/api/v1\");",
           "}"
         ]
       }
@@ -75112,11 +76542,77 @@
       "value": "job-sample-001",
       "type": "string",
       "description": "Sample OCR Job UUID"
+    },
+    {
+      "key": "doctorAToken",
+      "value": "{{doctorToken}}",
+      "type": "string",
+      "description": "Backward compatibility alias for doctorToken"
+    },
+    {
+      "key": "doctorBToken",
+      "value": "{{accessToken}}",
+      "type": "string",
+      "description": "Doctor B token alias"
+    },
+    {
+      "key": "doctorAId",
+      "value": "{{doctorUserId}}",
+      "type": "string",
+      "description": "Doctor A user ID alias"
+    },
+    {
+      "key": "doctorBId",
+      "value": "{{otherUserId}}",
+      "type": "string",
+      "description": "Doctor B user ID alias"
+    },
+    {
+      "key": "adminToken",
+      "value": "{{accessToken}}",
+      "type": "string",
+      "description": "JWT Access Token for authenticated ADMIN"
+    },
+    {
+      "key": "superAdminToken",
+      "value": "{{accessToken}}",
+      "type": "string",
+      "description": "JWT Access Token for authenticated SUPER_ADMIN"
+    },
+    {
+      "key": "patientToken",
+      "value": "{{accessToken}}",
+      "type": "string",
+      "description": "JWT Access Token for authenticated PATIENT"
+    },
+    {
+      "key": "doctorToken",
+      "value": "{{accessToken}}",
+      "type": "string",
+      "description": "JWT Access Token for authenticated DOCTOR"
+    },
+    {
+      "key": "facilityAdminToken",
+      "value": "{{accessToken}}",
+      "type": "string",
+      "description": "JWT Access Token for authenticated FACILITY_ADMIN"
+    },
+    {
+      "key": "doctorUserId",
+      "value": "1f06067b-e229-4707-84e2-afa27da2e4cd",
+      "type": "string",
+      "description": "User ID of authenticated Doctor"
+    },
+    {
+      "key": "otherUserId",
+      "value": "user-other-target-staging-id",
+      "type": "string",
+      "description": "Disallowed cross-user ID for IDOR defense testing"
     }
   ],
   "info": {
     "_postman_id": "1e81925f-cf77-40ed-bc8b-b1f9526ced03",
-    "name": "CareID API — Staging Integration Collection (November 6, 2026 Release)",
+    "name": "CareID API — Staging Integration Collection (November 2026 Post-Audit Release)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "# CareID Enterprise Backend — Staging Integration Collection\n\nOfficial API collection for the **CareID / Health Vault 360** clinical, identity, compliance, and governance platform backend, representing the verified **November 6, 2026 Production & Staging Release**.\n\n## Release Features & Architecture\n- **Treatment Offers Subsystem:** Multi-procedure clinical proposals, atomic sequential identifiers (`OFF-YYYYMMDD-XXXX`, `FIN-YYYYMMDD-XXXX`), dispatch, counter-offers, acceptance/rejection workflows.\n- **Healthcare Financing Persistence:** PostgreSQL-backed financing applications and status audit history with AES-256-GCM field-level encryption for PAN and monthly income.\n- **OCR Engine Microservice:** Persistent PaddleOCR / PyMuPDF service with private loopback endpoint and `POST /api/v1/insurance/ocr/extract`.\n- **Target Staging API:** `https://360api.vnvision.in`\n- **Default Base URL:** `https://360api.vnvision.in/api/v1`\n- **Database Engine:** PostgreSQL with Prisma ORM (22 clinical models, 6 sequential migrations)\n- **Process Manager:** PM2 on aaPanel Linux (port `3073`)\n- **Total Operations:** 559 HTTP operations across 27 domain folders\n\n## Automated URL Normalization\nThe collection includes a pre-request script that automatically normalizes `{{baseUrl}}`. Whether your Postman environment has `baseUrl` set to `https://360api.vnvision.in/api/v1` or `https://360api.vnvision.in`, requests will resolve cleanly without duplicate `/api/v1` path segments.\n\n## Seeded Staging Test Accounts\n| Role | Allowlisted Phone | Staging OTP | Seeded Email | Function |\n|---|---|---|---|---|\n| **SUPER_ADMIN** | `+16505550001` | `123456` | `superadmin@careid.test` | Platform Super Administrator |\n| **ADMIN** | `+16505550002` | `123456` | `admin@careid.test` | System Administrator |\n| **DOCTOR** | `+16505550003` | `123456` | *(N/A)* | Clinical Provider (Dr. Sarah Jenkins) |\n| **PATIENT** | `+16505550004` | `123456` | *(N/A)* | Patient Vault (John Doe) |\n| **FACILITY_ADMIN** | `+16505550005` | `123456` | *(N/A)* | Hospital Admin (Metro General) |\n| **STAFF** | `+16505550006` | `123456` | *(N/A)* | Triage / Nurse (Alice Smith) |\n| **FAMILY_MEMBER** | `+16505550007` | `123456` | *(N/A)* | Family Vault (Jane Doe) |\n"
   },
