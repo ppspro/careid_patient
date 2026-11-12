@@ -612,8 +612,10 @@ To guarantee seamless patient identification across all present and legacy CareI
 | Test Suite | Path | Tests Passed | Status |
 | :--- | :--- | :--- | :--- |
 | **Universal QR Contract (Patient)** | `test/features/patient/universal_qr_contract_test.dart` | **10 / 10** | **PASS** |
-| **Universal QR Contract (Doctor)** | `test/universal_qr_doctor_contract_test.dart` | **3 / 3** | **PASS** |
+| **Universal QR Contract (Doctor)** | `test/universal_qr_doctor_contract_test.dart` | **4 / 4** | **PASS** |
 | **QR Processing Engine (Doctor)** | `test/qr_processing_test.dart` | **7 / 7** | **PASS** |
+| **QR Security & Failure Matrix (Patient)** | `test/features/patient/qr_security_and_failure_matrix_test.dart` | **11 / 11** | **PASS** |
+| **QR Optical Render & Decode Suite** | `test/features/patient/qr_image_render_and_decode_test.dart` | **1 / 1 (5/5 PNGs)** | **PASS** |
 | **Patient Screens Regression** | `test/features/patient/patient_screens_widget_test.dart` | **5 / 5** | **PASS** |
 | **Patient Repositories Regression** | `test/features/patient/patient_repositories_test.dart` | **4 / 4** | **PASS** |
 | **Flutter Static Analysis (Patient)** | `flutter analyze` | **0 errors, 0 warnings** | **PASS** |
@@ -621,10 +623,130 @@ To guarantee seamless patient identification across all present and legacy CareI
 
 ---
 
-### 15.5 Universal Health Card QR Final Decision
+### 15.5 Universal Health Card QR Final Decision (Phase 15.0)
 
 # DECISION: GO
 
 The CareID Health Card QR code is now genuinely scannable, cryptographically signed, compliant with clinical privacy standards, and universally compatible across both Patient and Doctor applications.
+
+---
+
+## 16. PHASE 15.1: UNIVERSAL QR END-TO-END ACCEPTANCE & RELEASE VERIFICATION
+
+**Date:** 2026-11-12  
+**Evaluation Scope:**
+1. Independent Optical Image Decoding (all 4 Patient App screens + Canonical JSON).
+2. Backend Security & Hardening Verification (token revocation authority, anti-bypass).
+3. Security & Edge-Case Failure Matrix (11 distinct security failure modes).
+4. Physical Scanning Verification Status.
+5. Cross-App Compatibility Audit.
+6. Android Release Distribution Builds (Patient & Doctor Apps).
+
+---
+
+### 16.1 Independent Optical QR Image Rendering & Decoding
+
+To guarantee that the Patient App renders mathematically valid, optically readable QR barcodes without relying on internal Flutter widgets, an automated rendering test suite was executed:
+- **Test File:** `test/features/patient/qr_image_render_and_decode_test.dart`
+- **Output Directory:** Scratch testing workspace
+- **Independent Decoder:** Node.js `jsqr: ^1.4.0` with `pngjs` (industry-standard optical computer-vision QR engine)
+
+#### Optical Decode Verification Results:
+
+| # | Screen / Mode | Rendered File | Encoded Payload | jsQR Optical Decode Result | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | **Health Card Screen** | `screen1_health_card.png` | `HVQR-9596203EE8FF1D57` | `HVQR-9596203EE8FF1D57` (Exact Match) | **PASS** |
+| 2 | **Dependent Card Screen** | `screen2_dependent_card.png` | `HC-DEP-2026-0001` | `HC-DEP-2026-0001` (Exact Match) | **PASS** |
+| 3 | **QR Preview Screen** | `screen3_qr_preview.png` | `HVQR-9596203EE8FF1D57` | `HVQR-9596203EE8FF1D57` (Exact Match) | **PASS** |
+| 4 | **QR Dashboard Screen** | `screen4_qr_dashboard.png` | `HVQR-CID9928` | `HVQR-CID9928` (Exact Match) | **PASS** |
+| 5 | **Canonical JSON Contract** | `screen1_canonical_json.png` | `{"v":"1.0","type":"CAREID_HEALTH_CARD","token":"HVQR-9596203EE8FF1D57",...}` | Exact byte-for-byte JSON payload decoded | **PASS** |
+
+**Optical Engineering Note:** QR matrices rendered to raw raster images must include an explicit opaque white background canvas and a quiet zone border (minimum 4 modules). Without an explicit white background, transparent modules register as black RGB values when saved as PNG, preventing edge detection by optical camera sensors. All screens have been verified with high-contrast white backing.
+
+---
+
+### 16.2 Backend Security Hardening & Vulnerability Remediation
+
+During runtime security testing of `CareID_Doctor_application`, a critical authorization bypass was identified and permanently fixed:
+
+1. **Vulnerability Identified:** If a scanned payload contained an expired or revoked Enterprise QR token (`HVQR-XXXXXXXX`), the doctor app scanner previously caught the `404/400` failure and fell through to verifying the card number (`HC-...`) against `/health-cards/verify-qr`. Because the physical health card remained active even when the token was rotated or expired, this fallback bypassed token revocation!
+2. **Security Fix Applied (`qr_processing_screen.dart` & `universal_qr_doctor_contract_test.dart`):**
+   - When an Enterprise QR token is present, server verification is strictly authoritative.
+   - If the server rejects the token as expired, revoked, or invalid, the verification halts immediately with the server's rejection reason. It never falls through to the card number fallback.
+   - The scanner no longer overrides patient identity with client-provided JSON `patientId`. Patient identity is derived exclusively from verified backend records (`ownerId` / `entityId`).
+
+---
+
+### 16.3 Security & Edge-Case Failure Matrix
+
+An exhaustive 11-case failure matrix was executed against `DigitalHealthCardRepository` and the QR verification engine:
+
+| Test Case | Scenario / Input | Expected Result | Actual Result | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Case 1** | Scanned Valid Token | Server verification succeeds (`isValid: true`) | Verified with patient demographic data | **PASS** |
+| **Case 2** | Scanned Valid Canonical JSON | Extracts token, verifies against backend | Verified with patient demographic data | **PASS** |
+| **Case 3** | Scanned Malformed QR String | Rejects without unhandled exception | Handled gracefully, invalid format | **PASS** |
+| **Case 4** | Scanned Expired QR Token | Backend returns `isValid: false`, reason `EXPIRED` | Rejected with expiration message | **PASS** |
+| **Case 5** | Scanned Revoked QR Token | Backend returns `isValid: false`, reason `REVOKED` | Rejected with revocation message | **PASS** |
+| **Case 6** | Scanned Old Rotated Token | Backend returns `isValid: false`, reason `ROTATED` | Rejected with rotated token alert | **PASS** |
+| **Case 7** | Scanned Newly Rotated Token | Server verifies new token (`isValid: true`) | Verified with updated patient record | **PASS** |
+| **Case 8** | Duplicate Scans in Rapid Succession | Prevents race condition / crash | Verified idempotently | **PASS** |
+| **Case 9** | Network Error During Scan | Displays network retry message, no crash | User-friendly network alert returned | **PASS** |
+| **Case 10** | Unauthorized Doctor Account (401) | Security boundary rejection | `401 Unauthorized` handled securely | **PASS** |
+| **Case 11** | Unsupported Contract Version (`v: 99.0`) | Rejects unsupported contract | Rejects unsupported version | **PASS** |
+
+**Matrix Score:** **11 / 11 tests passed (100%)**.
+
+---
+
+### 16.4 Physical Scanning Verification
+
+- **ADB Device Check:** Executed `adb devices`. No physical devices attached to the host environment.
+- **Physical Test Status:** Explicitly recorded as **NOT TESTED** in physical camera mode due to hardware absence.
+- **Automated Validation:** 100% of optical image rendering, raster decoding (via `jsQR`), and camera-processing pipeline logic validated and passing in automated tests.
+
+---
+
+### 16.5 Cross-App Compatibility Audit
+
+1. **Patient App (`CareID_patient_app`):**
+   - Cleanly generates all 3 supported formats (Token string, Canonical JSON, Card number).
+   - High-contrast scannable UI on Health Card, Dependent Card, QR Preview, and QR Dashboard screens.
+   - 100% static analysis pass (`flutter analyze`: 0 errors, 0 warnings).
+2. **Doctor Mobile App (`CareID_Doctor_application`):**
+   - Parses Token strings, Canonical JSON payloads, and legacy Card numbers.
+   - Authoritative token validation with zero fallback bypass.
+   - 100% static analysis pass (`flutter analyze`: 0 errors, 0 warnings).
+3. **Doctor Web App (`doctor-web-repaired`):**
+   - Supports QR token verification via `POST /api/v1/qr/verify` and card search via `GET /api/v1/health-cards`.
+
+---
+
+### 16.6 Release Distribution Builds
+
+Both applications were compiled in release mode with full Gradle optimization and tree-shaking:
+
+#### 1. Patient App Release APK
+- **File Path:** `C:\Users\PABANI\CareID_patient_app\build\app\outputs\flutter-apk\app-release.apk`
+- **File Size:** `74,386,155 bytes` (~70.9 MB)
+- **SHA256 Checksum:** `AF44AFF31C742B4A650E139791C97C7E9F2A0377CC9B00EB843E10B19FAE5505`
+- **Git Commit:** `480cf72` (Pushed to `https://github.com/ppspro/careid_patient.git`)
+
+#### 2. Doctor App Release APK
+- **File Path:** `C:\Users\PABANI\CareID_Doctor_application\build\app\outputs\flutter-apk\app-release.apk`
+- **File Size:** `99,352,789 bytes` (~94.8 MB)
+- **SHA256 Checksum:** `1716C3431B74320F39251F3725CABCE0BE6CE6500F46AB6B56B9CA35B32DB4FC`
+- **Git Commit:** `a38c30c` (Committed locally on branch `main`; remote push restricted with 403 on third-party repository `Subhrajitankit/CareID_Doctor_application.git`)
+
+---
+
+### 16.7 Final Decision
+
+# DECISION: CONDITIONAL GO
+
+- **Rationale:**
+  - **GO** for Software Architecture, Optical QR Generation, Independent Image Decoding (`jsQR` 5/5), Security Boundary Hardening (zero fallback bypass), Edge-Case Failure Matrix (11/11), and Production Release APK Builds.
+  - **CONDITIONAL** solely on final physical optical camera scanning once a physical mobile device or authorized camera hardware is connected via ADB.
+
 
 
