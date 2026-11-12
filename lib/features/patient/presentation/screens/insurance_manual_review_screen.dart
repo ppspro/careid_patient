@@ -1,10 +1,8 @@
 import '../../data/repositories/insurance_repository.dart';
-import '../../data/repositories/mock_insurance_repository.dart';
 import '../../data/models/insurance_policy_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 
 import '../../../../shared/widgets/careid_bottom_navigation_bar.dart';
 import '../../../../shared/widgets/primary_button.dart';
@@ -12,30 +10,63 @@ import '../widgets/insurance_assets.dart';
 
 /// Screen 6: Manual Review & Edit (`20:20723`)
 class InsuranceManualReviewScreen extends StatefulWidget {
-  const InsuranceManualReviewScreen({super.key});
+  final InsurancePolicyDto? initialPolicy;
+  final String? jobId;
+  final InsuranceRepository? insuranceRepository;
+
+  const InsuranceManualReviewScreen({
+    super.key,
+    this.initialPolicy,
+    this.jobId,
+    this.insuranceRepository,
+  });
 
   @override
   State<InsuranceManualReviewScreen> createState() => _InsuranceManualReviewScreenState();
 }
 
 class _InsuranceManualReviewScreenState extends State<InsuranceManualReviewScreen> {
+  late final InsuranceRepository _insuranceRepo;
   late TextEditingController _providerCtrl;
   late TextEditingController _memberIdCtrl;
   late TextEditingController _groupNumberCtrl;
   late TextEditingController _effectiveDateCtrl;
   late TextEditingController _expiryDateCtrl;
   late TextEditingController _planTypeCtrl;
+  bool _isSaving = false;
   
   @override
   void initState() {
     super.initState();
-    final policy = MockInsuranceRepository.instance.primaryPolicy;
-    _providerCtrl = TextEditingController(text: 'Aura Health Global');
-    _memberIdCtrl = TextEditingController(text: '882-991-0045');
-    _groupNumberCtrl = TextEditingController(text: 'TX-90210-V');
-    _effectiveDateCtrl = TextEditingController(text: '01 / 01 / 2023');
-    _expiryDateCtrl = TextEditingController(text: '12 / 31 / 2025');
-    _planTypeCtrl = TextEditingController(text: policy.planType);
+    _insuranceRepo = widget.insuranceRepository ?? InsuranceRepository();
+    final p = widget.initialPolicy;
+    _providerCtrl = TextEditingController(text: p?.providerName ?? 'CareID Health Network');
+    _memberIdCtrl = TextEditingController(text: p?.policyNumber ?? 'CID-882-991');
+    _groupNumberCtrl = TextEditingController(text: p?.groupNumber ?? 'GRP-90210');
+    _effectiveDateCtrl = TextEditingController(text: p?.validFrom?.split('T')[0] ?? '01 / 01 / 2024');
+    _expiryDateCtrl = TextEditingController(text: p?.validThru?.split('T')[0] ?? '12 / 31 / 2026');
+    _planTypeCtrl = TextEditingController(text: p?.planName ?? 'Comprehensive Health Plan');
+
+    if (widget.initialPolicy == null) {
+      _loadExistingPolicy();
+    }
+  }
+
+  Future<void> _loadExistingPolicy() async {
+    try {
+      final res = await _insuranceRepo.getPolicies();
+      if (res.isSuccess && res.dataOrNull != null && res.dataOrNull!.isNotEmpty && mounted) {
+        final policy = res.dataOrNull!.first;
+        setState(() {
+          if (policy.providerName.isNotEmpty) _providerCtrl.text = policy.providerName;
+          if (policy.policyNumber.isNotEmpty) _memberIdCtrl.text = policy.policyNumber;
+          if (policy.groupNumber != null && policy.groupNumber!.isNotEmpty) _groupNumberCtrl.text = policy.groupNumber!;
+          if (policy.planName != null && policy.planName!.isNotEmpty) _planTypeCtrl.text = policy.planName!;
+          if (policy.validFrom != null) _effectiveDateCtrl.text = policy.validFrom!.split('T')[0];
+          if (policy.validThru != null) _expiryDateCtrl.text = policy.validThru!.split('T')[0];
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -50,55 +81,79 @@ class _InsuranceManualReviewScreenState extends State<InsuranceManualReviewScree
   }
 
   Future<void> _onSaveChanges() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
     final provider = _providerCtrl.text.trim();
     final policyNum = _memberIdCtrl.text.trim();
     final groupNum = _groupNumberCtrl.text.trim();
     final plan = _planTypeCtrl.text.trim().isNotEmpty
         ? _planTypeCtrl.text.trim()
-        : 'Individual PPO Premium';
+        : 'Comprehensive Health Plan';
 
     try {
-      await InsuranceRepository().createPolicy(
-        InsurancePolicyDto(
-          id: '',
-          providerName: provider,
-          policyNumber: policyNum,
-          groupNumber: groupNum,
-          planName: plan,
-          status: 'ACTIVE',
+      if (widget.jobId != null && widget.jobId!.isNotEmpty) {
+        await _insuranceRepo.submitOcrReview(
+          jobId: widget.jobId!,
+          reviewStatus: 'APPROVED',
+          reviewNotes: 'Verified and saved by patient',
+          corrections: [
+            {'field': 'providerName', 'value': provider},
+            {'field': 'policyNumber', 'value': policyNum},
+            {'field': 'groupNumber', 'value': groupNum},
+            {'field': 'planName', 'value': plan},
+          ],
+        );
+      } else {
+        await _insuranceRepo.createPolicy(
+          InsurancePolicyDto(
+            id: widget.initialPolicy?.id ?? '',
+            providerName: provider,
+            policyNumber: policyNum,
+            groupNumber: groupNum,
+            planName: plan,
+            status: 'ACTIVE',
+          ),
+        );
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Policy Details Updated Successfully!',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: const Color(0xFF006D76),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
         ),
       );
-    } catch (_) {}
-
-    final repo = MockInsuranceRepository.instance;
-    repo.updatePrimaryPolicy(
-      repo.primaryPolicy.copyWith(
-        providerName: provider,
-        policyNumber: policyNum,
-        groupNumber: groupNum,
-        effectiveDate: _effectiveDateCtrl.text.trim(),
-        expiryDate: _expiryDateCtrl.text.trim(),
-        planType: plan,
-      ),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Policy Details Updated Successfully!',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Policy details saved',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
+          backgroundColor: const Color(0xFF006D76),
+          behavior: SnackBarBehavior.floating,
         ),
-        backgroundColor: const Color(0xFF006D76),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-
-    Navigator.of(context).pop();
+      );
+      Navigator.of(context).pop(true);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -316,7 +371,7 @@ class _InsuranceManualReviewScreenState extends State<InsuranceManualReviewScree
                                 ),
                               ),
                               Text(
-                                'Aura Health Global',
+                                _providerCtrl.text.isNotEmpty ? _providerCtrl.text : 'CareID Health Network',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -340,7 +395,7 @@ class _InsuranceManualReviewScreenState extends State<InsuranceManualReviewScree
                                 ),
                               ),
                               Text(
-                                '882-991-0045',
+                                _memberIdCtrl.text.isNotEmpty ? _memberIdCtrl.text : 'CID-882-991',
                                 style: GoogleFonts.robotoMono(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -704,9 +759,9 @@ class _InsuranceManualReviewScreenState extends State<InsuranceManualReviewScree
 
   Widget _buildSaveButton() {
     return PrimaryButton(
-      label: 'Save Changes',
-      leadingIcon: Icons.save_outlined,
-      onPressed: _onSaveChanges,
+      label: _isSaving ? 'Saving...' : 'Save Changes',
+      leadingIcon: _isSaving ? null : Icons.save_outlined,
+      onPressed: _isSaving ? null : _onSaveChanges,
     );
   }
 }

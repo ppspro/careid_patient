@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -7,7 +5,6 @@ import 'package:http/http.dart' as http;
 
 import 'package:careid_patient_app/core/config/app_config.dart';
 import 'package:careid_patient_app/core/network/api_client.dart';
-import 'package:careid_patient_app/core/network/api_result.dart';
 import 'package:careid_patient_app/core/storage/token_storage.dart';
 import 'package:careid_patient_app/features/auth/data/repositories/auth_repository.dart';
 import 'package:careid_patient_app/features/patient/data/repositories/patient_repository.dart';
@@ -136,3 +133,4 @@ void main() {
     });
   });
 }
+

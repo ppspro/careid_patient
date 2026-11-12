@@ -236,3 +236,4 @@ The patient profile image functionality is fully repaired, tested, and verified 
 - Image retrieval is fully authenticated with Bearer tokens, eliminating 401 silent fallbacks.
 - Cache busting guarantees that newly uploaded photos reflect immediately.
 - The signed release APK has been built and successfully installed on the physical Xiaomi test device.
+

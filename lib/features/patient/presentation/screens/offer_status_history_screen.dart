@@ -1,5 +1,4 @@
 import '../../data/repositories/financing_repository.dart';
-import '../../data/repositories/mock_insurance_repository.dart';
 import '../../data/repositories/treatment_offer_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -98,9 +97,7 @@ class _OfferStatusHistoryScreenState extends State<OfferStatusHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final allOffers = _liveOffers.isNotEmpty
-        ? _liveOffers
-        : (_hasLoaded ? <HistoricalOfferItem>[] : MockInsuranceRepository.instance.historicalOffers);
+    final allOffers = _liveOffers;
 
     final filteredOffers = allOffers.where((offer) {
       // Filter chip matching
@@ -588,6 +585,14 @@ class _OfferStatusHistoryScreenState extends State<OfferStatusHistoryScreen> {
   }
 
   Widget _buildOffersList(List<HistoricalOfferItem> offers) {
+    if (!_hasLoaded && _isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 40.0),
+          child: CircularProgressIndicator(color: Color(0xFF6B46C1)),
+        ),
+      );
+    }
     if (offers.isEmpty) {
       return Container(
         width: double.infinity,

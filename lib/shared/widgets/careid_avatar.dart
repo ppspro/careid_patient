@@ -237,3 +237,4 @@ class _CareIdAvatarState extends State<CareIdAvatar> {
     return decorated;
   }
 }
+

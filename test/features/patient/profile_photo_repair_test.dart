@@ -10,7 +10,6 @@ import 'package:careid_patient_app/core/config/app_config.dart';
 import 'package:careid_patient_app/core/constants/api_endpoints.dart';
 import 'package:careid_patient_app/core/network/api_client.dart';
 import 'package:careid_patient_app/core/storage/token_storage.dart';
-import 'package:careid_patient_app/features/patient/data/models/patient_profile_models.dart';
 import 'package:careid_patient_app/features/patient/data/repositories/patient_repository.dart';
 import 'package:careid_patient_app/shared/widgets/careid_avatar.dart';
 
