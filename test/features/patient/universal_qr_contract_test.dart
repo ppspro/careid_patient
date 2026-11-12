@@ -62,7 +62,7 @@ class MockUniversalQrApiClient extends ApiClient {
     }
 
     if (endpoint == '/api/v1/insurance/policies') {
-      return ApiSuccess(data: fromJson != null ? fromJson([]) : [] as T);
+      return ApiSuccess(data: fromJson != null ? fromJson(<dynamic>[]) : <dynamic>[] as T);
     }
 
     return const ApiFailure(message: 'Not found', statusCode: 404);

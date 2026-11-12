@@ -164,9 +164,35 @@ class DigitalHealthCardRepository {
       candidateCardNumber = candidateToken;
     }
 
-    // Step 1: If it's a card number or canonical JSON with card number, try /health-cards/verify-qr
+    // Step 1: If payload is an Enterprise QR token, server verification is strictly authoritative
+    if (candidateToken.startsWith('HVQR-')) {
+      return _apiClient.post<VerifyQrResponseDto>(
+        ApiEndpoints.qrVerify,
+        requiresAuth: true,
+        body: {
+          'token': candidateToken,
+          'deviceInfo': 'CareID Patient App',
+          'location': 'Client Scan',
+        },
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) {
+            final isValid = json['isValid'] == true || json['status'] == 'VALID';
+            return VerifyQrResponseDto(
+              isValid: isValid,
+              cardNumber: json['entityId']?.toString(),
+              patientNumber: json['ownerId']?.toString(),
+              verificationStatus: json['status']?.toString() ?? (isValid ? 'VALID' : 'INVALID'),
+              message: json['failureReason']?.toString(),
+            );
+          }
+          return const VerifyQrResponseDto(isValid: false, message: 'Invalid token format');
+        },
+      );
+    }
+
+    // Step 2: If it's a card number or canonical JSON with card number, verify via /health-cards/verify-qr
     if (candidateCardNumber != null) {
-      final cardRes = await _apiClient.post<VerifyQrResponseDto>(
+      return _apiClient.post<VerifyQrResponseDto>(
         ApiEndpoints.healthCardsVerifyQr,
         requiresAuth: true,
         body: {'qrPayload': candidateCardNumber},
@@ -177,37 +203,6 @@ class DigitalHealthCardRepository {
           return const VerifyQrResponseDto(isValid: false, message: 'Invalid card format');
         },
       );
-      if (cardRes.isSuccess && (cardRes.dataOrNull?.isValid == true)) {
-        return cardRes;
-      }
-    }
-
-    // Step 2: Try Enterprise QR Subsystem: POST /api/v1/qr/verify
-    final qrRes = await _apiClient.post<VerifyQrResponseDto>(
-      ApiEndpoints.qrVerify,
-      requiresAuth: true,
-      body: {
-        'token': candidateToken,
-        'deviceInfo': 'CareID Patient App',
-        'location': 'Client Scan',
-      },
-      fromJson: (json) {
-        if (json is Map<String, dynamic>) {
-          final isValid = json['isValid'] == true || json['status'] == 'VALID';
-          return VerifyQrResponseDto(
-            isValid: isValid,
-            cardNumber: json['entityId']?.toString(),
-            patientNumber: json['ownerId']?.toString(),
-            verificationStatus: json['status']?.toString() ?? (isValid ? 'VERIFIED' : 'INVALID'),
-            message: json['failureReason']?.toString(),
-          );
-        }
-        return const VerifyQrResponseDto(isValid: false, message: 'Invalid token format');
-      },
-    );
-
-    if (qrRes.isSuccess && (qrRes.dataOrNull?.isValid == true)) {
-      return qrRes;
     }
 
     // Fallback: Default card verify with raw payload
