@@ -215,37 +215,35 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     if (!mounted) return;
 
-    if (result.isSuccess && result.dataOrNull != null) {
-      // Refresh appointment data after successful booking
-      _repository.getMyAppointments();
+    result.when(
+      success: (apt, _) {
+        _repository.getMyAppointments();
 
-      setState(() {
-        _isBooking = false;
-        _bookedAppointment = result.dataOrNull!;
-        _currentStep = 3; // Jump to Confirmation View
-      });
-    } else {
-      final failure = result is ApiFailure ? (result as ApiFailure) : null;
-      final code = failure?.statusCode;
-      final msg = failure?.message ?? 'Failed to book appointment. Please try again.';
+        setState(() {
+          _isBooking = false;
+          _bookedAppointment = apt;
+          _currentStep = 3; // Jump to Confirmation View
+        });
+      },
+      failure: (msg, code, _) {
+        setState(() {
+          _isBooking = false;
+          _conflictStatusCode = code;
+          _bookingErrorMessage = code == 409
+              ? 'The selected slot ($slotTime) is no longer available. Please select another slot.'
+              : (msg.isNotEmpty ? msg : 'Failed to book appointment. Please try again.');
+        });
 
-      setState(() {
-        _isBooking = false;
-        _conflictStatusCode = code;
-        _bookingErrorMessage = code == 409
-            ? 'The selected slot ($slotTime) is no longer available. Please select another slot.'
-            : msg;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_bookingErrorMessage!),
-          backgroundColor: code == 409 ? const Color(0xFFDC2626) : const Color(0xFF006D76),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_bookingErrorMessage!),
+            backgroundColor: code == 409 ? const Color(0xFFDC2626) : const Color(0xFF006D76),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -604,7 +602,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'No schedule slots are published for ${widget.doctor.fullName} on this date. Please select another date.',
+                  _slotsErrorMessage ??
+                      'No schedule slots are published for ${widget.doctor.fullName} on this date. Please select another date.',
                   textAlign: TextAlign.center,
                   style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                 ),

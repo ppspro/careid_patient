@@ -36,6 +36,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
   String _selectedFilter = 'All';
 
   List<FamilyMemberDto> _members = [];
+  List<FamilyInvitationDto> _invitations = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -92,23 +93,13 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
   bool get _isEn => _currentLanguage == 'en';
 
   Future<void> _loadFamilyData() async {
-    // If running in test or offline preview mode without an API client or custom repo
-    if (widget.apiClient == null && widget.repository == null) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _members = _defaultFigmaMembers;
-        });
-      }
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     final memRes = await _repository.getMembers();
+    final invRes = await _repository.getInvitations();
 
     if (!mounted) return;
 
@@ -117,7 +108,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
 
       memRes.when(
         success: (list, _) {
-          _members = list.isNotEmpty ? list : _defaultFigmaMembers;
+          _members = list;
         },
         failure: (msg, code, _) {
           if (code == 401) {
@@ -127,10 +118,169 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
           } else {
             _errorMessage = msg;
           }
-          _members = _defaultFigmaMembers;
         },
       );
+
+      invRes.when(
+        success: (invs, _) {
+          _invitations = invs;
+        },
+        failure: (_, __, ___) {
+          _invitations = [];
+        },
+      );
+
+      // If both members and invitations are empty and running with no API client / repo, fallback to design seed
+      if (_members.isEmpty && _invitations.isEmpty && widget.apiClient == null && widget.repository == null) {
+        _members = _defaultFigmaMembers;
+      }
     });
+  }
+
+  Future<void> _handleResendInvitation(FamilyInvitationDto inv) async {
+    if (!inv.canResend) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Maximum resend attempts reached for this invitation (5/5).'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final res = await _repository.resendInvitation(inv.id);
+    if (!mounted) return;
+
+    res.when(
+      success: (updated, _) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Invitation resent to ${inv.inviteeName ?? inv.inviteePhone} (${updated.resendCount}/5).'),
+            backgroundColor: const Color(0xFF00695C),
+          ),
+        );
+        _loadFamilyData();
+      },
+      failure: (msg, _, __) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleCancelInvitation(FamilyInvitationDto inv) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel Invitation'),
+        content: Text('Are you sure you want to cancel the invitation sent to ${inv.inviteeName ?? inv.inviteePhone}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Keep'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Cancel Invitation', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final res = await _repository.cancelInvitation(inv.id);
+    if (!mounted) return;
+
+    res.when(
+      success: (_, __) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invitation cancelled successfully.'),
+            backgroundColor: Color(0xFF00695C),
+          ),
+        );
+        _loadFamilyData();
+      },
+      failure: (msg, _, __) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleAcceptInvitation(FamilyInvitationDto inv) async {
+    final res = await _repository.acceptInvitation(inv.id);
+    if (!mounted) return;
+
+    res.when(
+      success: (_, __) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Invitation for ${inv.inviteeName ?? inv.inviteePhone} accepted! Linked into family vault.'),
+            backgroundColor: const Color(0xFF15803D),
+          ),
+        );
+        _loadFamilyData();
+      },
+      failure: (msg, _, __) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleDeleteMember(FamilyMemberDto mem) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove Family Member'),
+        content: Text('Are you sure you want to remove ${mem.fullName} from your family health vault?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Remove', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final res = await _repository.removeMember(mem.id);
+    if (!mounted) return;
+
+    res.when(
+      success: (_, __) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${mem.fullName} removed.')),
+        );
+        _loadFamilyData();
+      },
+      failure: (msg, _, __) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red.shade700),
+        );
+      },
+    );
   }
 
   List<String> get _filterOptions => _isEn
@@ -209,7 +359,10 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => const AddFamilyMemberScreen(),
+              builder: (_) => AddFamilyMemberScreen(
+                apiClient: widget.apiClient,
+                repository: _repository,
+              ),
             ),
           ).then((_) => _loadFamilyData());
         },
@@ -397,8 +550,11 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
 
   Widget _buildContentList() {
     final members = _filteredMembers;
+    final pendingInvs = _invitations
+        .where((i) => i.isPending || i.status.toUpperCase() == 'PENDING')
+        .toList();
 
-    if (members.isEmpty) {
+    if (members.isEmpty && pendingInvs.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -420,6 +576,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                     (_searchController.text.isNotEmpty
                         ? (_isEn ? 'No results found' : 'Sin resultados')
                         : (_isEn ? 'No family members linked' : 'Sin familiares vinculados')),
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -433,12 +590,266 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
       );
     }
 
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-      itemCount: members.length,
-      itemBuilder: (context, index) {
-        return _buildMemberCard(members[index]);
-      },
+      children: [
+        if (_errorMessage != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFECACA)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF991B1B)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        if (pendingInvs.isNotEmpty) ...[
+          Row(
+            children: [
+              const Icon(Icons.mark_email_unread_outlined, size: 18, color: Color(0xFFEA580C)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _isEn ? 'Pending Invitations (${pendingInvs.length})' : 'Invitaciones pendientes (${pendingInvs.length})',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                    fontFamily: 'Plus Jakarta Sans',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...pendingInvs.map(_buildInvitationCard),
+          const SizedBox(height: 14),
+        ],
+        if (members.isNotEmpty) ...[
+          if (pendingInvs.isNotEmpty) ...[
+            Row(
+              children: [
+                const Icon(Icons.people_alt_outlined, size: 18, color: Color(0xFF00695C)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _isEn ? 'Linked Family Members (${members.length})' : 'Familiares vinculados (${members.length})',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
+                      fontFamily: 'Plus Jakarta Sans',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
+          ...members.map(_buildMemberCard),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildInvitationCard(FamilyInvitationDto inv) {
+    final invitee = inv.inviteeName != null && inv.inviteeName!.isNotEmpty
+        ? inv.inviteeName!
+        : inv.inviteePhone;
+    final initials = invitee.trim().split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase();
+    final resendCount = inv.resendCount;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFED7AA), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF97316).withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  color: const Color(0xFFFFF7ED),
+                  alignment: Alignment.center,
+                  child: Text(
+                    initials.isNotEmpty ? initials : 'IN',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFEA580C),
+                      fontFamily: 'Plus Jakarta Sans',
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      invitee,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F172A),
+                        fontFamily: 'Plus Jakarta Sans',
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${inv.relationship} • ${inv.inviteePhone}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Plus Jakarta Sans',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFFEDD5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFFEA580C)),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isEn ? 'Pending' : 'Pendiente',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFEA580C),
+                        fontFamily: 'Plus Jakarta Sans',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.refresh_rounded, size: 14, color: Color(0xFFB45309)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Resends: $resendCount/5',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+                if (inv.invitationToken != null)
+                  Text(
+                    'Token: ${inv.invitationToken!.length > 8 ? inv.invitationToken!.substring(0, 8) : inv.invitationToken}...',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      color: Color(0xFF92400E),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
+                  label: const Text('Accept', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF15803D),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  onPressed: () => _handleAcceptInvitation(inv),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.send_rounded, size: 15),
+                  label: Text('Resend ($resendCount/5)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF00695C),
+                    side: const BorderSide(color: Color(0xFF00695C)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: inv.canResend ? () => _handleResendInvitation(inv) : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Cancel Invitation',
+                icon: const Icon(Icons.close_rounded, color: Color(0xFFEF4444)),
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFFFEF2F2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => _handleCancelInvitation(inv),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -653,11 +1064,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Color(0xFFEF4444)),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Delete action for ${mem.fullName}')),
-                    );
-                  },
+                  onPressed: () => _handleDeleteMember(mem),
                 ),
               ),
             ],

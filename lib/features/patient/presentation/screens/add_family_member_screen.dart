@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../shared/widgets/primary_button.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -13,9 +14,14 @@ import 'invitation_sent_screen.dart';
 /// - 20:19424 (Add Family Member — Access)
 /// - 20:19238 (Add Family Member — Review)
 class AddFamilyMemberScreen extends StatefulWidget {
+  final ApiClient? apiClient;
   final FamilyRepository? repository;
 
-  const AddFamilyMemberScreen({super.key, this.repository});
+  const AddFamilyMemberScreen({
+    super.key,
+    this.apiClient,
+    this.repository,
+  });
 
   @override
   State<AddFamilyMemberScreen> createState() => _AddFamilyMemberScreenState();
@@ -48,11 +54,12 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   bool _grantAppointmentBooking = false;
 
   bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _repository = widget.repository ?? FamilyRepository();
+    _repository = widget.repository ?? FamilyRepository(apiClient: widget.apiClient);
   }
 
   @override
@@ -65,43 +72,89 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     super.dispose();
   }
 
-  Future<void> _handleSendInvitation() async {
-    final name = _nameController.text.trim();
-    final phone = _phoneController.text.trim();
+  String _normalizePhone(String raw) {
+    String cleaned = raw.replaceAll(RegExp(r'[\s\-\(\)\.]'), '');
+    if (!cleaned.startsWith('+')) {
+      if (cleaned.length == 10) {
+        cleaned = '+1$cleaned';
+      } else {
+        cleaned = '+$cleaned';
+      }
+    }
+    return cleaned;
+  }
 
-    if (name.isEmpty || phone.isEmpty) {
+  Future<void> _handleSendInvitation() async {
+    if (_isSubmitting) return;
+
+    final name = _nameController.text.trim();
+    final rawPhone = _phoneController.text.trim();
+
+    if (name.isEmpty || rawPhone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter name and mobile number')),
       );
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    final normalizedPhone = _normalizePhone(rawPhone);
+    if (!RegExp(r'^\+[1-9]\d{1,14}$').hasMatch(normalizedPhone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid phone number in E.164 format (e.g. +16505550001)'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    final relationshipType = _selectedRelationship.toUpperCase().replaceAll(' ', '_');
 
     final invitation = FamilyInvitationDto(
       id: '',
       inviteeName: name,
-      inviteePhone: phone.startsWith('+') ? phone : '+1${phone.replaceAll(RegExp(r'\D'), '')}',
+      inviteePhone: normalizedPhone,
       relationship: _selectedRelationship,
-      relationshipType: _selectedRelationship.toUpperCase(),
+      relationshipType: relationshipType,
       status: 'PENDING',
     );
 
-    await _repository.sendInvitation(invitation);
+    final result = await _repository.sendInvitation(invitation);
 
-    if (mounted) {
-      setState(() => _isSubmitting = false);
-      // Navigate to Figma Invitation Sent screen (20:19138)
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => InvitationSentScreen(
-            memberName: name,
-            relationship: _selectedRelationship,
-            emailOrPhone: phone,
+    if (!mounted) return;
+
+    result.when(
+      success: (createdInvite, _) {
+        setState(() => _isSubmitting = false);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => InvitationSentScreen(
+              memberName: name,
+              relationship: _selectedRelationship,
+              emailOrPhone: normalizedPhone,
+            ),
           ),
-        ),
-      );
-    }
+        );
+      },
+      failure: (message, statusCode, _) {
+        setState(() {
+          _isSubmitting = false;
+          _errorMessage = message;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.red.shade700,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -405,6 +458,29 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_errorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFECACA)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF991B1B), fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           Text(
             'Review Linkage Invitation',
             style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
@@ -440,7 +516,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    'An SMS verification invite will be sent to the recipient to establish cryptographic family linkage.',
+                    'A secure cryptographic family linkage invitation will be created. The recipient can accept via the link or deep-link notification.',
                     style: AppTypography.bodySmall.copyWith(color: AppColors.tealPrimary),
                   ),
                 ),

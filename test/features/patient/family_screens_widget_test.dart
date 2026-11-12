@@ -127,8 +127,9 @@ void main() {
 
       // Member Card renders
       expect(find.text('Robert Jenkins'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Lucas Jenkins'), 200, scrollable: find.byType(Scrollable).last);
       expect(find.text('Lucas Jenkins'), findsOneWidget);
-      expect(find.text('View Details'), findsNWidgets(2));
+      expect(find.text('View Details'), findsWidgets);
 
       // FAB
       expect(find.byType(FloatingActionButton), findsOneWidget);

@@ -467,7 +467,7 @@ void main() {
           reason: 'Must not call repository when form validation fails');
     });
 
-    testWidgets('3b. AddFamilyMemberScreen: Failure handling inspection (swallowed failure on send)', (tester) async {
+    testWidgets('3b. AddFamilyMemberScreen: Failure handling inspection (displays error and prevents navigation)', (tester) async {
       // Configure mock returning failure
       final mockFamilyRepo = MockFamilyRepoForButtonTesting()
         ..sendInvitationResult = const ApiFailure(
@@ -513,9 +513,9 @@ void main() {
       // Repository was called
       expect(mockFamilyRepo.sendInvitationCallCount, 1);
 
-      // EMPIRICAL OBSERVATION: Notice screen pushes InvitationSentScreen despite ApiFailure!
-      // This empirically documents the M3 gap where repository errors are swallowed in presentation.
-      expect(find.byType(InvitationSentScreen), findsOneWidget);
+      // Error is displayed and screen prevents navigation
+      expect(find.byType(InvitationSentScreen), findsNothing);
+      expect(find.text('Contact number already linked to another patient vault'), findsAtLeast(1));
     });
 
     testWidgets('4. AddHealthRecordScreen: Category selection, Save button and ApiFailure resiliency', (tester) async {

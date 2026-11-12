@@ -417,3 +417,93 @@ The Phase 2.1 Appointment Booking workflow is fully implemented, verified, test-
 **Conditions for Live Booking on Staging/Production:**
 - Backend / Clinic Admin team must run slot generation (`POST /api/v1/schedules/:id/generate-slots`) for active doctors so that real slots appear in the interactive calendar.
 - The mobile app is fully prepared and will automatically display all generated slots as soon as they are published by clinic staff.
+
+---
+
+## 14. Phase 2.2 — Family Member Invitation Implementation Report
+
+**Date:** 2026-11-12  
+**Feature:** Family Member Invitation & Care Linkage Flow  
+**Target Device:** Xiaomi Redmi 8A Dual (`9e7ed35c0007`), Android 10 (API 29)  
+**Backend API:** `https://360api.vnvision.in/api/v1`  
+**Backend Source Reference:** `hvapi-main/src/modules/family`
+
+---
+
+### 14.1 Implementation Overview
+
+Phase 2.2 completes the end-to-end Family Member Invitation and Cryptographic Care Linkage workflow in the CareID Patient App. The implementation bridges the multi-step Figma designs (`20:22023`, `20:19424`, `20:19238`, `20:19138`, `20:21825`) to the live NestJS backend family APIs.
+
+The complete invitation lifecycle was audited, verified with live API runtime probes, and bound into production screens:
+1. **Creation:** `POST /api/v1/family/invitations` generates an invitation with token, relationship type, and E.164 phone normalization.
+2. **Duplicate Prevention:** Backend returns `400 Bad Request` ("A pending invitation already exists for this phone number"). Mobile app catches this error, presents an in-line warning banner, and prevents unverified progression.
+3. **Resend Lifecycle:** `POST /api/v1/family/invitations/:id/resend` increments the invitation resend counter (maximum 5 attempts). Button displays `X/5` and automatically disables when the cap is reached.
+4. **Cancellation:** `DELETE /api/v1/family/invitations/:id` cancels pending invitations with a native confirmation dialog.
+5. **Acceptance & Auto-Creation:** `POST /api/v1/family/invitations/:id/accept` accepts the invitation and automatically persists a new `FamilyMember` in the database.
+6. **Deep Linking:** Deep links (`careid://invite/:id` and `/invite/:id`) route to a dedicated `AcceptInvitationScreen` with authentication checking, acceptance actions, celebration confirmation, and error handling for expired or invalid invitations.
+7. **Removal:** `DELETE /api/v1/family/members/:id` safely removes or archives linked family members from the user's clinical vault.
+
+---
+
+### 14.2 Investigation Finding: SMS Delivery Reality
+
+A critical architectural inspection was conducted across `hvapi-main/src/modules/family/presentation/controllers/family.controller.ts` and `family.service.ts`:
+
+- **Finding:** In `FamilyService.createInvitation` and `resendInvitation`, the backend generates `invitationToken = randomUUID()` and saves the record into PostgreSQL, but does **not** dispatch SMS via Twilio or an SMS gateway.
+- **Client Protocol:** The Patient App **does not fabricate SMS delivery statuses** or pretend that an SMS was sent by the phone.
+- **UX Alignment:** The app presents the invitation as a secure cryptographic invitation link (`careid://invite/:id`), shows the token, provides in-app deep-linking acceptance, and accurately guides the patient that the invitee can accept via the link or deep-link notification.
+
+---
+
+### 14.3 Exact Files Modified & Created
+
+| File Path | Role in Phase 2.2 |
+| :--- | :--- |
+| `lib/features/patient/data/models/family_models.dart` | Updated `FamilyInvitationDto` with `invitationToken`, `resendCount`, `expiresAt`, `acceptedAt`, `rejectedAt`, `cancelledAt`, and lifecycle state getters (`isPending`, `isAccepted`, `isExpired`, `canResend`). |
+| `lib/features/patient/data/repositories/family_repository.dart` | Added `sendInvitation`, `resendInvitation`, `acceptInvitation`, `rejectInvitation`, `cancelInvitation`, `removeMember`, and strict E.164 phone normalization. |
+| `lib/features/patient/presentation/screens/add_family_member_screen.dart` | Connected 3-step form (Form -> Permissions -> Review) to `sendInvitation`. Enforces E.164 phone validation, handles `ApiFailure` (e.g. 400 duplicate invite) with error alert banner, and navigates to `InvitationSentScreen` on 201 Created. |
+| `lib/features/patient/presentation/screens/family_members_screen.dart` | Fetches both linked members and pending invitations. Renders "Pending Invitations" section with Resend (`X/5`), Cancel, and Accept actions. Wires member removal to `DELETE /api/v1/family/members/:id`. |
+| `lib/features/patient/presentation/screens/accept_invitation_screen.dart` | New screen handling deep link `/invite/:id` and `careid://invite/:id`. Checks authentication state, prompts sign-in if guest, renders invitation summary, triggers `acceptInvitation`, displays celebration view, and handles expired/already-accepted errors. |
+| `lib/app.dart` | Registered routes for `/family/add`, `/family/dashboard`, and deep link matcher for `/invite/:id` and `careid://invite/:id`. |
+| `test/features/patient/family_invitation_workflow_test.dart` | New comprehensive 8-test suite covering input validation, duplicate invite handling, pending list rendering, resending, canceling, acceptance, and unauthenticated deep-link handling. |
+| `test/features/patient/m2_button_interaction_state_stress_test.dart` | Updated test `3b` to verify that `AddFamilyMemberScreen` displays the error banner on `ApiFailure` and prevents navigation. |
+| `test/features/patient/family_screens_widget_test.dart` | Updated `FamilyMembersScreen` widget test to accommodate pending invitation sections. |
+
+---
+
+### 14.4 Verification & Test Results
+
+1. **Static Analysis:**
+   - Command: `flutter analyze`
+   - Result: `No issues found! (0 warnings, 0 errors, 0 lints)`
+2. **Dedicated Invitation Workflow Test Suite:**
+   - Command: `flutter test test/features/patient/family_invitation_workflow_test.dart`
+   - Result: `8 of 8 tests passed (100% pass rate)`
+     - Form validation blocks empty inputs
+     - Form advances to Review and sends invitation
+     - Duplicate invitation (400 Bad Request) displays error banner
+     - Pending invitation card renders with resend and cancel actions
+     - Accept action calls backend and reloads family vault
+     - Unauthenticated deep link prompts sign in
+     - Authenticated deep link acceptance renders celebration view
+     - Expired / invalid invitation error handling
+3. **Comprehensive Regression Suite:**
+   - All family management and form interaction tests passing cleanly.
+
+---
+
+### 14.5 Android Release Build & Physical Device Verification
+
+- **Target Device:** Xiaomi Redmi 8A Dual (`9e7ed35c0007`), Android 10 (API 29)
+- **Release APK Output:** `build/app/outputs/flutter-apk/app-release.apk`
+- **Installation Method:** `adb -s 9e7ed35c0007 install -r build/app/outputs/flutter-apk/app-release.apk`
+- **Device Verification:** Verified app launch, Family Dashboard display, pending invitations rendering, and invitation dialogs on hardware.
+
+---
+
+### 14.6 Phase 2.2 Final Decision
+
+# DECISION: GO
+
+The Family Member Invitation Flow is fully implemented, verified against live backend contracts, backed by comprehensive automated test coverage, and confirmed on the physical Android test device.
+

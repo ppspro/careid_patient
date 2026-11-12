@@ -21,6 +21,8 @@ import 'features/patient/presentation/screens/insurance_qr_screen.dart';
 import 'features/patient/presentation/screens/emergency_center_screen.dart';
 import 'features/patient/presentation/screens/dependent_health_card_screen.dart';
 import 'features/patient/presentation/screens/family_members_screen.dart';
+import 'features/patient/presentation/screens/add_family_member_screen.dart';
+import 'features/patient/presentation/screens/family_dashboard_screen.dart';
 import 'features/patient/presentation/screens/patient_main_navigation_shell.dart';
 import 'features/patient/data/models/doctor_models.dart';
 import 'features/patient/presentation/screens/doctor_profile_screen.dart';
@@ -47,6 +49,7 @@ import 'features/patient/presentation/screens/medical_records_screen.dart';
 import 'features/patient/presentation/screens/dental_records_screen.dart';
 import 'features/patient/presentation/screens/vision_records_screen.dart';
 import 'features/patient/presentation/screens/my_appointments_screen.dart';
+import 'features/patient/presentation/screens/accept_invitation_screen.dart';
 
 /// Root Application Widget for CareID Patient App
 class CareIdPatientApp extends StatelessWidget {
@@ -81,6 +84,16 @@ class CareIdPatientApp extends StatelessWidget {
       initialRoute: initialRoute,
       onGenerateRoute: (settings) {
         final name = settings.name ?? '/';
+        if (name.startsWith('/invite/') || name.startsWith('careid://invite/')) {
+          final tokenOrId = name.replaceFirst(RegExp(r'^(careid://invite/|/invite/)'), '');
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => AcceptInvitationScreen(
+              invitationId: tokenOrId,
+              apiClient: apiClient,
+            ),
+          );
+        }
         final route = name.startsWith('/') ? name : '/$name';
 
         switch (route) {
@@ -163,6 +176,16 @@ class CareIdPatientApp extends StatelessWidget {
             return MaterialPageRoute<void>(
               settings: settings,
               builder: (_) => FamilyMembersScreen(apiClient: apiClient),
+            );
+          case '/family/dashboard':
+            return MaterialPageRoute<void>(
+              settings: settings,
+              builder: (_) => FamilyDashboardScreen(apiClient: apiClient),
+            );
+          case '/family/add':
+            return MaterialPageRoute<void>(
+              settings: settings,
+              builder: (_) => AddFamilyMemberScreen(apiClient: apiClient),
             );
           case '/family/dependent-card':
             return MaterialPageRoute<void>(

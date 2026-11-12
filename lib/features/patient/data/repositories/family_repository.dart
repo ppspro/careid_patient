@@ -55,16 +55,82 @@ class FamilyRepository {
   /// Sends a new family linkage invitation
   /// POST /api/v1/family/invitations
   Future<ApiResult<FamilyInvitationDto>> sendInvitation(FamilyInvitationDto dto) async {
+    // Normalize phone number to strict E.164: ^\+[1-9]\d{1,14}$
+    String normalizedPhone = dto.inviteePhone.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (!normalizedPhone.startsWith('+')) {
+      if (normalizedPhone.length == 10) {
+        normalizedPhone = '+1$normalizedPhone';
+      } else {
+        normalizedPhone = '+$normalizedPhone';
+      }
+    }
+
+    final payload = <String, dynamic>{
+      'inviteePhone': normalizedPhone,
+      'relationship': dto.relationship,
+      if (dto.inviteeName != null && dto.inviteeName!.trim().isNotEmpty)
+        'inviteeName': dto.inviteeName!.trim(),
+      if (dto.relationshipType != null && dto.relationshipType!.trim().isNotEmpty)
+        'relationshipType': dto.relationshipType!.trim(),
+      if (dto.expiresAt != null && dto.expiresAt!.trim().isNotEmpty)
+        'expiresAt': dto.expiresAt!.trim(),
+    };
+
     return _apiClient.post<FamilyInvitationDto>(
       ApiEndpoints.familyInvitations,
       requiresAuth: true,
-      body: dto.toJson(),
+      body: payload,
       fromJson: (json) {
         if (json is Map<String, dynamic>) {
           return FamilyInvitationDto.fromJson(json);
         }
         return dto;
       },
+    );
+  }
+
+  /// Resends a pending family invitation (max 5 times)
+  /// POST /api/v1/family/invitations/:id/resend
+  Future<ApiResult<FamilyInvitationDto>> resendInvitation(String invitationId) async {
+    return _apiClient.post<FamilyInvitationDto>(
+      '${ApiEndpoints.familyInvitations}/$invitationId/resend',
+      requiresAuth: true,
+      fromJson: (json) {
+        if (json is Map<String, dynamic>) {
+          return FamilyInvitationDto.fromJson(json);
+        }
+        return FamilyInvitationDto(id: invitationId, inviteePhone: '', relationship: '');
+      },
+    );
+  }
+
+  /// Accepts a family invitation — auto-creates family member record in backend
+  /// POST /api/v1/family/invitations/:id/accept
+  Future<ApiResult<Map<String, dynamic>>> acceptInvitation(String invitationId) async {
+    return _apiClient.post<Map<String, dynamic>>(
+      '${ApiEndpoints.familyInvitations}/$invitationId/accept',
+      requiresAuth: true,
+      fromJson: (json) => json is Map<String, dynamic> ? json : <String, dynamic>{},
+    );
+  }
+
+  /// Rejects a family invitation
+  /// POST /api/v1/family/invitations/:id/reject
+  Future<ApiResult<Map<String, dynamic>>> rejectInvitation(String invitationId) async {
+    return _apiClient.post<Map<String, dynamic>>(
+      '${ApiEndpoints.familyInvitations}/$invitationId/reject',
+      requiresAuth: true,
+      fromJson: (json) => json is Map<String, dynamic> ? json : <String, dynamic>{},
+    );
+  }
+
+  /// Cancels a pending family invitation
+  /// DELETE /api/v1/family/invitations/:id
+  Future<ApiResult<Map<String, dynamic>>> cancelInvitation(String invitationId) async {
+    return _apiClient.delete<Map<String, dynamic>>(
+      '${ApiEndpoints.familyInvitations}/$invitationId',
+      requiresAuth: true,
+      fromJson: (json) => json is Map<String, dynamic> ? json : <String, dynamic>{},
     );
   }
 
@@ -83,6 +149,16 @@ class FamilyRepository {
         }
         return [];
       },
+    );
+  }
+
+  /// Removes or archives a family member
+  /// DELETE /api/v1/family/members/:id
+  Future<ApiResult<Map<String, dynamic>>> removeMember(String memberId) async {
+    return _apiClient.delete<Map<String, dynamic>>(
+      '${ApiEndpoints.familyMembers}/$memberId',
+      requiresAuth: true,
+      fromJson: (json) => json is Map<String, dynamic> ? json : <String, dynamic>{},
     );
   }
 

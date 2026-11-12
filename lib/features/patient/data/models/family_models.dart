@@ -6,7 +6,13 @@ class FamilyInvitationDto {
   final String inviteePhone;
   final String relationship;
   final String? relationshipType;
-  final String status; // PENDING, ACCEPTED, REJECTED, EXPIRED
+  final String status; // PENDING, ACCEPTED, REJECTED, EXPIRED, CANCELLED
+  final String? invitationToken;
+  final int resendCount;
+  final String? expiresAt;
+  final String? acceptedAt;
+  final String? rejectedAt;
+  final String? cancelledAt;
   final String? createdAt;
 
   const FamilyInvitationDto({
@@ -16,8 +22,21 @@ class FamilyInvitationDto {
     required this.relationship,
     this.relationshipType,
     this.status = 'PENDING',
+    this.invitationToken,
+    this.resendCount = 0,
+    this.expiresAt,
+    this.acceptedAt,
+    this.rejectedAt,
+    this.cancelledAt,
     this.createdAt,
   });
+
+  bool get isPending => status.toUpperCase() == 'PENDING';
+  bool get isAccepted => status.toUpperCase() == 'ACCEPTED';
+  bool get isRejected => status.toUpperCase() == 'REJECTED';
+  bool get isExpired => status.toUpperCase() == 'EXPIRED';
+  bool get isCancelled => status.toUpperCase() == 'CANCELLED';
+  bool get canResend => isPending && resendCount < 5;
 
   factory FamilyInvitationDto.fromJson(Map<String, dynamic> json) {
     return FamilyInvitationDto(
@@ -27,6 +46,14 @@ class FamilyInvitationDto {
       relationship: json['relationship']?.toString() ?? 'Family Member',
       relationshipType: json['relationshipType']?.toString() ?? json['relationship']?.toString(),
       status: (json['status']?.toString() ?? 'PENDING').toUpperCase(),
+      invitationToken: json['invitationToken']?.toString(),
+      resendCount: json['resendCount'] is int
+          ? json['resendCount'] as int
+          : int.tryParse(json['resendCount']?.toString() ?? '0') ?? 0,
+      expiresAt: json['expiresAt']?.toString(),
+      acceptedAt: json['acceptedAt']?.toString(),
+      rejectedAt: json['rejectedAt']?.toString(),
+      cancelledAt: json['cancelledAt']?.toString(),
       createdAt: json['createdAt']?.toString(),
     );
   }
@@ -34,8 +61,9 @@ class FamilyInvitationDto {
   Map<String, dynamic> toJson() => {
     'inviteePhone': inviteePhone,
     'relationship': relationship,
-    if (inviteeName != null) 'inviteeName': inviteeName,
-    if (relationshipType != null) 'relationshipType': relationshipType,
+    if (inviteeName != null && inviteeName!.isNotEmpty) 'inviteeName': inviteeName,
+    if (relationshipType != null && relationshipType!.isNotEmpty) 'relationshipType': relationshipType,
+    if (expiresAt != null && expiresAt!.isNotEmpty) 'expiresAt': expiresAt,
   };
 }
 
