@@ -192,3 +192,4 @@ The remaining 252 backend endpoints are strictly isolated to hospital administra
 - `FacilityAdminController` (room allocation, operating theater scheduling)
 
 These endpoints correctly return `403 Forbidden` when queried by a patient bearer token, verifying proper backend role-based access control (RBAC).
+

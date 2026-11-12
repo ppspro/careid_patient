@@ -109,3 +109,4 @@ The release APK was built using `flutter build apk --release` and installed on t
 | **Physical Device Test** | Streamed install & verified on Redmi 8A Dual | Cold start & Dashboard verified | **PASS** |
 
 The CareID Patient App is completely audited, integrated, verified, and ready for deployment.
+

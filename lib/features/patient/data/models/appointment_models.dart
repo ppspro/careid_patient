@@ -70,8 +70,8 @@ class AppointmentModel {
 
     final resolvedDoctorName = json['doctorName']?.toString() ??
         (docObj?['fullName']?.toString()) ??
-        (docObj?['firstName'] != null ? '\ '.trim() : null) ??
-        (docUser != null ? 'Dr. \ '.trim() : null) ??
+        (docObj?['firstName'] != null ? '${docObj!['firstName']} ${docObj['lastName'] ?? ''}'.trim() : null) ??
+        (docUser != null ? 'Dr. ${docUser['firstName'] ?? ''} ${docUser['lastName'] ?? ''}'.trim() : null) ??
         'Dr. Julian Vance, MD';
 
     final resolvedSpecialization = json['specialization']?.toString() ??
@@ -85,7 +85,7 @@ class AppointmentModel {
 
     final fullDate = json['dateTime'] ??
         (json['appointmentDate'] != null && json['startTime'] != null
-            ? '\T\:00'
+            ? '${json['appointmentDate']}T${json['startTime']}:00'
             : (json['appointmentDate'] ?? json['startTime']));
 
     return AppointmentModel(

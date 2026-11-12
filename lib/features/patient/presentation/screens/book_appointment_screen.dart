@@ -18,11 +18,13 @@ import 'appointment_confirmation_screen.dart';
 class BookAppointmentScreen extends StatefulWidget {
   final DoctorModel doctor;
   final DoctorRepository? repository;
+  final List<DoctorScheduleSlotModel>? initialSlots;
 
   const BookAppointmentScreen({
     super.key,
     required this.doctor,
     this.repository,
+    this.initialSlots,
   });
 
   @override
@@ -38,10 +40,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     text: 'Follow-up consultation after lipid panel test and routine checkup.',
   );
 
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 3));
-  String _selectedTimeSlot = '09:45 AM';
+  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  DoctorScheduleSlotModel? _selectedSlot;
+
+  List<DoctorScheduleSlotModel> _doctorSlots = [];
+  bool _isLoadingSlots = false;
+  String? _slotsErrorMessage;
 
   bool _isBooking = false;
+  String? _bookingErrorMessage;
+  int? _conflictStatusCode;
   AppointmentModel? _bookedAppointment;
 
   final List<Map<String, String>> _consultationTypes = const [
@@ -62,21 +70,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     },
   ];
 
-  final List<String> _timeSlots = const [
-    '09:00 AM',
-    '09:45 AM',
-    '10:30 AM',
-    '11:15 AM',
-    '02:00 PM',
-    '02:45 PM',
-    '03:30 PM',
-    '04:15 PM',
-  ];
-
   @override
   void initState() {
     super.initState();
     _repository = widget.repository ?? DoctorRepository();
+    if (widget.initialSlots != null) {
+      _doctorSlots = List.from(widget.initialSlots!);
+      _selectDefaultSlotForDate();
+    } else {
+      _loadDoctorScheduleSlots();
+    }
   }
 
   @override
@@ -85,11 +88,107 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     super.dispose();
   }
 
+  Future<void> _loadDoctorScheduleSlots() async {
+    setState(() {
+      _isLoadingSlots = true;
+      _slotsErrorMessage = null;
+    });
+
+    try {
+      final res = await _repository.getDoctorSlots(widget.doctor.id);
+      if (!mounted) return;
+
+      if (res.isSuccess && res.dataOrNull != null) {
+        setState(() {
+          _doctorSlots = res.dataOrNull!;
+          _isLoadingSlots = false;
+          _selectDefaultSlotForDate();
+        });
+      } else {
+        setState(() {
+          _doctorSlots = [];
+          _isLoadingSlots = false;
+          _slotsErrorMessage = 'No available schedule slots from provider.';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _doctorSlots = [];
+        _isLoadingSlots = false;
+        _slotsErrorMessage = 'Failed to load schedule: $e';
+      });
+    }
+  }
+
+  String _getDayName(DateTime date) {
+    const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return weekDays[date.weekday - 1];
+  }
+
+  bool _isSlotInPast(DoctorScheduleSlotModel slot) {
+    final now = DateTime.now();
+    if (_selectedDate.year < now.year ||
+        (_selectedDate.year == now.year && _selectedDate.month < now.month) ||
+        (_selectedDate.year == now.year && _selectedDate.month == now.month && _selectedDate.day < now.day)) {
+      return true;
+    }
+    if (_selectedDate.year == now.year && _selectedDate.month == now.month && _selectedDate.day == now.day) {
+      final parts = slot.startTime.split(':');
+      final h = int.tryParse(parts[0]) ?? 0;
+      final m = parts.length > 1 ? (int.tryParse(parts[1].split(' ')[0]) ?? 0) : 0;
+      if (h < now.hour || (h == now.hour && m <= now.minute)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  List<DoctorScheduleSlotModel> _getSlotsForSelectedDate() {
+    final dayName = _getDayName(_selectedDate).toLowerCase();
+    return _doctorSlots.where((slot) {
+      if (slot.slotDate != null) {
+        return slot.slotDate!.year == _selectedDate.year &&
+            slot.slotDate!.month == _selectedDate.month &&
+            slot.slotDate!.day == _selectedDate.day;
+      }
+      return slot.dayOfWeek.toLowerCase() == dayName;
+    }).toList();
+  }
+
+  void _selectDefaultSlotForDate() {
+    final availableSlots = _getSlotsForSelectedDate().where((s) => s.isAvailable && !_isSlotInPast(s)).toList();
+    if (availableSlots.isNotEmpty) {
+      _selectedSlot = availableSlots.first;
+    } else {
+      _selectedSlot = null;
+    }
+  }
+
   Future<void> _handleConfirmBooking() async {
-    setState(() => _isBooking = true);
+    if (_isBooking) return; // Prevent duplicate submissions
+
+    if (_selectedSlot == null) {
+      setState(() {
+        _currentStep = 1;
+        _bookingErrorMessage = 'Please select an available appointment time slot to proceed.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isBooking = true;
+      _bookingErrorMessage = null;
+      _conflictStatusCode = null;
+    });
+
+    final slotTime = _selectedSlot!.startTime;
+    final parts = slotTime.split(':');
+    final h = int.tryParse(parts[0]) ?? 9;
+    final m = parts.length > 1 ? (int.tryParse(parts[1].split(' ')[0]) ?? 0) : 0;
 
     final appointment = AppointmentModel(
-      id: 'apt-${DateTime.now().millisecondsSinceEpoch}',
+      id: '',
       doctorId: widget.doctor.id,
       doctorName: widget.doctor.fullName,
       specialization: widget.doctor.primarySpecialization,
@@ -98,8 +197,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         _selectedDate.year,
         _selectedDate.month,
         _selectedDate.day,
-        int.parse(_selectedTimeSlot.split(':')[0]) + (_selectedTimeSlot.contains('PM') && !_selectedTimeSlot.startsWith('12') ? 12 : 0),
-        int.parse(_selectedTimeSlot.split(':')[1].split(' ')[0]),
+        h,
+        m,
       ),
       consultationType: _selectedType,
       status: AppointmentStatus.upcoming,
@@ -109,17 +208,43 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       preparationNote: 'Arrive 10 mins prior for contactless Care ID check-in.',
       qrPassCode: 'CAREID-PASS-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
       suiteRoom: '4th Floor, Suite 400 • Check-in Kiosk 2',
-      durationMinutes: 45,
+      durationMinutes: 15,
     );
 
-    final result = await _repository.bookAppointment(appointment);
+    final result = await _repository.bookAppointment(appointment, slotId: _selectedSlot?.id);
 
-    if (mounted) {
+    if (!mounted) return;
+
+    if (result.isSuccess && result.dataOrNull != null) {
+      // Refresh appointment data after successful booking
+      _repository.getMyAppointments();
+
       setState(() {
         _isBooking = false;
-        _bookedAppointment = result.dataOrNull ?? appointment;
+        _bookedAppointment = result.dataOrNull!;
         _currentStep = 3; // Jump to Confirmation View
       });
+    } else {
+      final failure = result is ApiFailure ? (result as ApiFailure) : null;
+      final code = failure?.statusCode;
+      final msg = failure?.message ?? 'Failed to book appointment. Please try again.';
+
+      setState(() {
+        _isBooking = false;
+        _conflictStatusCode = code;
+        _bookingErrorMessage = code == 409
+            ? 'The selected slot ($slotTime) is no longer available. Please select another slot.'
+            : msg;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_bookingErrorMessage!),
+          backgroundColor: code == 409 ? const Color(0xFFDC2626) : const Color(0xFF006D76),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -253,11 +378,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   String _getStepSubtitle() {
     switch (_currentStep) {
       case 0:
-        return 'Configure consultation context and visit scope';
+        return 'Step 1 of 3: Choose consultation format & reason';
       case 1:
-        return 'Select an available appointment date and arrival slot';
+        return 'Step 2 of 3: Select date and available schedule slot';
       case 2:
-        return 'Verify doctor details and confirm clinical booking';
+        return 'Step 3 of 3: Review booking & clinic preparation';
       default:
         return '';
     }
@@ -266,7 +391,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   Widget _buildCurrentStepContent() {
     switch (_currentStep) {
       case 0:
-        return _buildStep1TypeSelection();
+        return _buildStep1Type();
       case 1:
         return _buildStep2DateTime();
       case 2:
@@ -276,7 +401,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     }
   }
 
-  Widget _buildStep1TypeSelection() {
+  Widget _buildStep1Type() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -286,18 +411,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           'Select Consultation Type',
           style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 4),
-        Text(
-          'Choose how you would like to consult with ${widget.doctor.fullName}',
-          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
-        ),
         const SizedBox(height: AppSpacing.sm),
         ..._consultationTypes.map((type) {
           final isSelected = _selectedType == type['title'];
           return Card(
-            elevation: 0,
             margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+            elevation: isSelected ? 1 : 0,
             shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
               side: BorderSide(
                 color: isSelected ? AppColors.primary : Colors.grey.shade200,
                 width: isSelected ? 1.5 : 1,
@@ -343,13 +464,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
-            focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
           ),
         ),
@@ -369,6 +493,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Widget _buildStep2DateTime() {
+    final slotsForDate = _getSlotsForSelectedDate();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -394,12 +520,18 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               final dayName = weekDays[date.weekday - 1];
 
               return GestureDetector(
-                onTap: () => setState(() => _selectedDate = date),
+                onTap: () {
+                  setState(() {
+                    _selectedDate = date;
+                    _selectDefaultSlotForDate();
+                  });
+                },
                 child: Container(
                   width: 64,
                   margin: const EdgeInsets.only(right: 10),
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: isSelected ? AppColors.primary : Colors.grey.shade300,
                     ),
@@ -431,42 +563,146 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text(
-          'Select Time Slot',
-          style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Select Time Slot',
+              style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
+            ),
+            if (_isLoadingSlots)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+              ),
+          ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: _timeSlots.map((slot) {
-            final isSelected = _selectedTimeSlot == slot;
-            return ChoiceChip(
-              label: Text(slot),
-              selected: isSelected,
-              selectedColor: AppColors.primary,
-              backgroundColor: Colors.white,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textPrimary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              ),
-              shape: RoundedRectangleBorder(
-                side: BorderSide(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
+        if (_isLoadingSlots)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(color: AppColors.primary),
+          )
+        else if (slotsForDate.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.event_busy_outlined, size: 40, color: Colors.grey.shade400),
+                const SizedBox(height: 10),
+                Text(
+                  'No Available Slots',
+                  style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
                 ),
-              ),
-              onSelected: (selected) {
-                if (selected) setState(() => _selectedTimeSlot = slot);
-              },
-            );
-          }).toList(),
-        ),
+                const SizedBox(height: 4),
+                Text(
+                  'No schedule slots are published for ${widget.doctor.fullName} on this date. Please select another date.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          )
+        else
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: slotsForDate.map((slot) {
+              final isPast = _isSlotInPast(slot);
+              final isBooked = !slot.isAvailable && !isPast;
+              final isAvailable = slot.isAvailable && !isPast;
+              final isSelected = _selectedSlot?.id == slot.id ||
+                  (_selectedSlot?.startTime == slot.startTime && _selectedSlot?.endTime == slot.endTime);
+
+              Color bgColor;
+              Color borderColor;
+              Color textColor;
+              String? statusBadge;
+
+              if (isSelected) {
+                bgColor = AppColors.primary;
+                borderColor = AppColors.primary;
+                textColor = Colors.white;
+              } else if (isAvailable) {
+                bgColor = Colors.white;
+                borderColor = AppColors.primary.withValues(alpha: 0.4);
+                textColor = AppColors.textPrimary;
+              } else if (isBooked) {
+                bgColor = Colors.grey.shade100;
+                borderColor = Colors.grey.shade300;
+                textColor = Colors.grey.shade500;
+                statusBadge = 'Booked';
+              } else {
+                bgColor = Colors.grey.shade100;
+                borderColor = Colors.grey.shade200;
+                textColor = Colors.grey.shade400;
+                statusBadge = 'Past';
+              }
+
+              return InkWell(
+                onTap: isAvailable
+                    ? () {
+                        setState(() {
+                          _selectedSlot = slot;
+                          _bookingErrorMessage = null;
+                        });
+                      }
+                    : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: borderColor, width: isSelected ? 1.5 : 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        slot.displayLabel,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontSize: 13,
+                          decoration: isBooked ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                      if (statusBadge != null) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            statusBadge,
+                            style: TextStyle(fontSize: 10, color: Colors.grey.shade700, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         const SizedBox(height: AppSpacing.lg),
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: Colors.blue.shade50,
             border: Border.all(color: Colors.blue.shade100),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
@@ -474,7 +710,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  'All times are in Eastern Standard Time (EST). Please arrive 10 minutes prior for seamless digital Care ID contactless check-in.',
+                  'All appointments are verified in real time. Please arrive 10 minutes prior for contactless Care ID check-in.',
                   style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
                 ),
               ),
@@ -488,10 +724,56 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   Widget _buildStep3Review() {
     final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     final dateStr = '${_selectedDate.day} ${monthNames[_selectedDate.month - 1]} ${_selectedDate.year}';
+    final slotLabel = _selectedSlot != null ? _selectedSlot!.displayLabel : 'No slot selected';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_bookingErrorMessage != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFCA5A5)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 22),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _conflictStatusCode == 409 ? 'Slot Unavailable (Conflict)' : 'Booking Error',
+                        style: AppTypography.titleSmall.copyWith(
+                          color: const Color(0xFF991B1B),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _bookingErrorMessage!,
+                        style: AppTypography.bodySmall.copyWith(color: const Color(0xFFB91C1C)),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() {
+                    _currentStep = 1;
+                    _bookingErrorMessage = null;
+                    _conflictStatusCode = null;
+                    _selectedSlot = null;
+                  }),
+                  child: const Text('Change Slot', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
+                ),
+              ],
+            ),
+          ),
         _buildDoctorContextBanner(),
         const SizedBox(height: AppSpacing.md),
         Text(
@@ -503,17 +785,18 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: Column(
             children: [
               _buildReviewRow(Icons.medical_services_outlined, 'Consultation Type', _selectedType),
               const Divider(height: 16),
-              _buildReviewRow(Icons.calendar_today_outlined, 'Date & Time', '$dateStr at $_selectedTimeSlot (EST)'),
+              _buildReviewRow(Icons.calendar_today_outlined, 'Date & Time', '$dateStr at $slotLabel'),
               const Divider(height: 16),
               _buildReviewRow(Icons.location_on_outlined, 'Facility & Location', widget.doctor.facilityName),
               const Divider(height: 16),
-              _buildReviewRow(Icons.notes_outlined, 'Reason for Visit', _reasonController.text.trim()),
+              _buildReviewRow(Icons.notes_outlined, 'Reason for Visit', _reasonController.text.trim().isNotEmpty ? _reasonController.text.trim() : 'Routine clinical consultation'),
             ],
           ),
         ),
@@ -522,6 +805,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: Colors.green.shade50,
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.green.shade200),
           ),
           child: Row(
@@ -575,6 +859,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
@@ -609,6 +894,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Widget _buildBottomAction() {
+    final canContinueStep1 = _currentStep != 1 || _selectedSlot != null;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -622,26 +909,26 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         ],
       ),
       child: SafeArea(
-          child: PrimaryButton.gradient(
-            label: _currentStep == 0
-                ? 'Continue to Date & Time'
-                : _currentStep == 1
-                    ? 'Review Appointment Details'
-                    : 'Confirm & Book Appointment',
-            onPressed: _isBooking
-                ? null
-                : () {
-                    if (_currentStep < 2) {
-                      setState(() => _currentStep++);
-                    } else {
-                      _handleConfirmBooking();
-                    }
-                  },
-            isLoading: _isBooking,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-          ),
+        child: PrimaryButton.gradient(
+          label: _currentStep == 0
+              ? 'Continue to Date & Time'
+              : _currentStep == 1
+                  ? (_selectedSlot != null ? 'Review Appointment Details' : 'Select a Slot to Continue')
+                  : (_isBooking ? 'Confirming Booking...' : 'Confirm & Book Appointment'),
+          onPressed: _isBooking || !canContinueStep1
+              ? null
+              : () {
+                  if (_currentStep < 2) {
+                    setState(() => _currentStep++);
+                  } else {
+                    _handleConfirmBooking();
+                  }
+                },
+          isLoading: _isBooking,
+          padding: const EdgeInsets.symmetric(vertical: 14),
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildConfirmationView(AppointmentModel appointment) {

@@ -586,10 +586,26 @@ void main() {
         facilityName: 'CareID Metro Clinic',
       );
 
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final testSlots = [
+        DoctorScheduleSlotModel(
+          id: 'slot-m2-1',
+          doctorId: testDoctor.id,
+          dayOfWeek: 'Any',
+          startTime: '09:00',
+          endTime: '09:30',
+          isAvailable: true,
+          slotDate: tomorrow,
+        ),
+      ];
+
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.lightTheme,
-          home: const BookAppointmentScreen(doctor: testDoctor),
+          home: BookAppointmentScreen(
+            doctor: testDoctor,
+            initialSlots: testSlots,
+          ),
         ),
       );
       await tester.pumpAndSettle();

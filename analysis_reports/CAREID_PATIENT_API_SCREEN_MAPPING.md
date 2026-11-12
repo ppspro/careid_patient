@@ -120,3 +120,4 @@ All 70 mapped screens enforce the four essential UI states:
 2. **Success / Populated State:** Smooth transition into loaded data lists, cards, and interactive forms.
 3. **Empty State:** Distinct illustrations/icons, clear friendly messaging (e.g. "No claims found", "No appointments scheduled"), and contextual action buttons (e.g. "Book Consultation", "Add Insurance").
 4. **Error State:** Descriptive error banners, offline indicators, and "Retry" call-to-actions ensuring users are never left stranded.
+

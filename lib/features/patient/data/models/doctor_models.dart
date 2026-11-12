@@ -160,6 +160,9 @@ class DoctorScheduleSlotModel {
   final String startTime;
   final String endTime;
   final bool isAvailable;
+  final DateTime? slotDate;
+  final DateTime? startDateTime;
+  final DateTime? endDateTime;
 
   const DoctorScheduleSlotModel({
     required this.id,
@@ -168,16 +171,61 @@ class DoctorScheduleSlotModel {
     required this.startTime,
     required this.endTime,
     this.isAvailable = true,
+    this.slotDate,
+    this.startDateTime,
+    this.endDateTime,
   });
 
-  factory DoctorScheduleSlotModel.fromJson(Map<String, dynamic> json) {
+  String get displayLabel => '$startTime - $endTime';
+
+  factory DoctorScheduleSlotModel.fromJson(Map<String, dynamic> json, {String defaultDoctorId = ''}) {
+    DateTime? parsedStart;
+    DateTime? parsedEnd;
+    DateTime? parsedDate;
+
+    final startRaw = json['startTime']?.toString() ?? '09:00';
+    final endRaw = json['endTime']?.toString() ?? '09:30';
+
+    if (startRaw.contains('T')) {
+      parsedStart = DateTime.tryParse(startRaw)?.toLocal();
+      parsedDate = parsedStart;
+    }
+    if (endRaw.contains('T')) {
+      parsedEnd = DateTime.tryParse(endRaw)?.toLocal();
+    }
+    if (json['slotDate'] != null) {
+      parsedDate = DateTime.tryParse(json['slotDate'].toString())?.toLocal();
+    }
+
+    String formattedStartTime = startRaw;
+    String formattedEndTime = endRaw;
+    if (parsedStart != null) {
+      final h = parsedStart.hour.toString().padLeft(2, '0');
+      final m = parsedStart.minute.toString().padLeft(2, '0');
+      formattedStartTime = '$h:$m';
+    }
+    if (parsedEnd != null) {
+      final h = parsedEnd.hour.toString().padLeft(2, '0');
+      final m = parsedEnd.minute.toString().padLeft(2, '0');
+      formattedEndTime = '$h:$m';
+    }
+
+    final isBooked = json['isBooked'] == true || (json['status']?.toString().toUpperCase() == 'BOOKED');
+    final isAvail = json.containsKey('isAvailable') ? (json['isAvailable'] == true && !isBooked) : !isBooked;
+
+    final weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final derivedDay = parsedDate != null ? weekDays[parsedDate.weekday - 1] : (json['dayOfWeek']?.toString() ?? 'Monday');
+
     return DoctorScheduleSlotModel(
       id: json['id']?.toString() ?? '',
-      doctorId: json['doctorId']?.toString() ?? '',
-      dayOfWeek: json['dayOfWeek']?.toString() ?? 'Monday',
-      startTime: json['startTime']?.toString() ?? '09:00',
-      endTime: json['endTime']?.toString() ?? '17:00',
-      isAvailable: json['isAvailable'] != false,
+      doctorId: json['doctorId']?.toString() ?? defaultDoctorId,
+      dayOfWeek: derivedDay,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+      isAvailable: isAvail,
+      slotDate: parsedDate,
+      startDateTime: parsedStart,
+      endDateTime: parsedEnd,
     );
   }
 }

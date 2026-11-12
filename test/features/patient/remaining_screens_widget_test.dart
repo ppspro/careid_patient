@@ -195,8 +195,21 @@ void main() {
     });
 
     testWidgets('3. BookAppointmentScreen (20:28764 & 20:28312 & 20:28595) progresses through booking stepper', (tester) async {
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final testSlots = [
+        DoctorScheduleSlotModel(
+          id: 'slot-stepper-1',
+          doctorId: testDoctor.id,
+          dayOfWeek: 'Any',
+          startTime: '09:00',
+          endTime: '09:30',
+          isAvailable: true,
+          slotDate: tomorrow,
+        ),
+      ];
+
       await tester.pumpWidget(
-        const MaterialApp(home: BookAppointmentScreen(doctor: testDoctor)),
+        MaterialApp(home: BookAppointmentScreen(doctor: testDoctor, initialSlots: testSlots)),
       );
       await tester.pump();
 

@@ -103,6 +103,7 @@ class DoctorRepository {
     try {
       final result = await _apiClient.get<List<DoctorScheduleSlotModel>>(
         ApiEndpoints.doctorSlots(doctorId),
+        requiresAuth: true,
         fromJson: (json) {
           final list = (json is Map<String, dynamic> && json.containsKey('data'))
               ? json['data']
@@ -110,15 +111,15 @@ class DoctorRepository {
           if (list is List) {
             return list
                 .whereType<Map<String, dynamic>>()
-                .map((e) => DoctorScheduleSlotModel.fromJson(e))
+                .map((e) => DoctorScheduleSlotModel.fromJson(e, defaultDoctorId: doctorId))
                 .toList();
           }
           return <DoctorScheduleSlotModel>[];
         },
       );
       return result;
-    } catch (_) {
-      return const ApiSuccess(data: []);
+    } catch (e) {
+      return ApiFailure(message: e.toString());
     }
   }
 
@@ -152,28 +153,36 @@ class DoctorRepository {
 
   /// Book a new appointment
   /// POST /api/v1/appointments
-  Future<ApiResult<AppointmentModel>> bookAppointment(AppointmentModel appointment) async {
+  Future<ApiResult<AppointmentModel>> bookAppointment(
+    AppointmentModel appointment, {
+    String? slotId,
+    String? facilityId,
+  }) async {
     try {
       final startH = appointment.dateTime.hour.toString().padLeft(2, '0');
       final startM = appointment.dateTime.minute.toString().padLeft(2, '0');
-      final endDt = appointment.dateTime.add(Duration(minutes: appointment.durationMinutes));
+      final endDt = appointment.dateTime.add(Duration(minutes: appointment.durationMinutes > 0 ? appointment.durationMinutes : 15));
       final endH = endDt.hour.toString().padLeft(2, '0');
       final endM = endDt.minute.toString().padLeft(2, '0');
 
-      final payload = {
-        'doctorProfileId': appointment.doctorId.contains('-') && appointment.doctorId.length > 20
-            ? appointment.doctorId
-            : '1f06067b-e229-4707-84e2-afa27da2e4cd',
-        'patientProfileId': '787e5187-7859-4320-bb1a-465a57dd086a',
-        'facilityId': '3b6a3f47-ed9c-4010-bb1a-e0fdea5f4abb',
+      final payload = <String, dynamic>{
+        'doctorProfileId': appointment.doctorId,
         'appointmentDate': appointment.dateTime.toIso8601String().split('T')[0],
         'startTime': '$startH:$startM',
         'endTime': '$endH:$endM',
         'durationMinutes': appointment.durationMinutes > 0 ? appointment.durationMinutes : 15,
         'type': appointment.consultationType.toUpperCase().contains('PERSON') ? 'IN_PERSON' : 'TELEHEALTH',
         'reason': appointment.reasonForVisit.isNotEmpty ? appointment.reasonForVisit : 'Routine clinical consultation',
-        'notes': 'Booked via CareID Patient Mobile App',
+        'notes': appointment.preparationNote.isNotEmpty ? appointment.preparationNote : 'Booked via CareID Patient Mobile App',
       };
+
+      if (slotId != null && slotId.isNotEmpty) {
+        payload['slotId'] = slotId;
+      }
+      final resolvedFacility = facilityId ?? appointment.facility;
+      if (resolvedFacility.contains('-') && resolvedFacility.length > 20) {
+        payload['facilityId'] = resolvedFacility;
+      }
 
       final res = await _apiClient.post<AppointmentModel>(
         ApiEndpoints.appointments,
@@ -187,14 +196,20 @@ class DoctorRepository {
         },
       );
 
-      _sessionAppointments.insert(0, appointment);
       if (res.isSuccess && res.dataOrNull != null) {
-        return res;
+        final booked = res.dataOrNull!;
+        _sessionAppointments.insert(0, booked);
+        return ApiSuccess(data: booked, message: 'Appointment booked successfully');
+      } else if (res is ApiFailure) {
+        final failure = res as ApiFailure;
+        return ApiFailure(
+          message: failure.message,
+          statusCode: failure.statusCode,
+        );
       }
-      return ApiSuccess(data: appointment, message: 'Appointment booked successfully');
+      return const ApiFailure(message: 'Failed to confirm booking with provider');
     } catch (e) {
-      _sessionAppointments.insert(0, appointment);
-      return ApiSuccess(data: appointment, message: 'Appointment recorded');
+      return ApiFailure(message: e.toString());
     }
   }
 

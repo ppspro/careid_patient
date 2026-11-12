@@ -90,3 +90,4 @@ This token was subsequently included in the `Authorization: Bearer <token>` head
 - **Network Reliability:** 100% successful TCP handshakes and TLS 1.3 session negotiations.
 - **Payload Integrity:** Every 200 response parsed valid JSON adhering strictly to TypeScript NestJS DTO definitions.
 - **Security Posture:** Role enforcement verified; patient token correctly rejected on administrative sub-routes (HTTP 403).
+
