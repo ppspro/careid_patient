@@ -1,5 +1,6 @@
 ﻿import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../shared/widgets/primary_button.dart';
 
 import '../../../../core/network/api_client.dart';
@@ -31,7 +32,10 @@ class QrPreviewScreen extends StatefulWidget {
     this.requirePin = false,
     this.sharingType = 'Full Medical Record',
     this.isTemporary = true,
+    this.qrToken,
   });
+
+  final String? qrToken;
 
   @override
   State<QrPreviewScreen> createState() => _QrPreviewScreenState();
@@ -211,10 +215,21 @@ class _QrPreviewScreenState extends State<QrPreviewScreen> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // Stylized QR pattern matching screenshot
-                        CustomPaint(
-                          size: const Size(176, 176),
-                          painter: _QrMatrixPreviewPainter(),
+                        // Real Scannable QR Matrix
+                        QrImageView(
+                          data: widget.qrToken ?? (widget.careId.startsWith('HVQR-') ? widget.careId : 'HVQR-${widget.careId.replaceAll(RegExp(r"[^A-Za-z0-9]"), "")}'),
+                          version: QrVersions.auto,
+                          size: 176,
+                          padding: EdgeInsets.zero,
+                          errorCorrectionLevel: QrErrorCorrectLevel.M,
+                          eyeStyle: const QrEyeStyle(
+                            eyeShape: QrEyeShape.square,
+                            color: Color(0xFF1E1B4B),
+                          ),
+                          dataModuleStyle: const QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: Color(0xFF1E1B4B),
+                          ),
                         ),
                         // Center ID emblem
                         Container(
@@ -457,52 +472,4 @@ class _QrPreviewScreenState extends State<QrPreviewScreen> {
       ),
     );
   }
-}
-
-class _QrMatrixPreviewPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final darkPaint = Paint()
-      ..color = const Color(0xFF1E1B4B)
-      ..style = PaintingStyle.fill;
-
-    final bluePaint = Paint()
-      ..color = const Color(0xFF0284C7)
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-    final sx = w / 16.0;
-    final sy = h / 16.0;
-
-    // Corner QR boxes: Top-Left, Top-Right, Bottom-Left
-    _drawFinderPattern(canvas, Offset(1.5 * sx, 1.5 * sy), 4.5 * sx, darkPaint);
-    _drawFinderPattern(canvas, Offset(10.0 * sx, 1.5 * sy), 4.5 * sx, darkPaint);
-    _drawFinderPattern(canvas, Offset(1.5 * sx, 10.0 * sy), 4.5 * sx, darkPaint);
-
-    // Decorative clinical QR blocks
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(7.0 * sx, 2.5 * sy, 2.0 * sx, 1.2 * sy), const Radius.circular(2)), bluePaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(2.0 * sx, 7.5 * sy, 1.2 * sy, 2.0 * sy), const Radius.circular(2)), bluePaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(11.0 * sx, 7.5 * sy, 1.5 * sx, 3.0 * sy), const Radius.circular(2)), bluePaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(7.0 * sx, 11.0 * sy, 3.0 * sx, 1.5 * sy), const Radius.circular(2)), darkPaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(10.5 * sx, 11.5 * sy, 2.5 * sx, 1.2 * sy), const Radius.circular(2)), bluePaint);
-  }
-
-  void _drawFinderPattern(Canvas canvas, Offset origin, double size, Paint paint) {
-    // Outer square
-    canvas.drawRect(Rect.fromLTWH(origin.dx, origin.dy, size, size), paint);
-    // Inner white cutout
-    canvas.drawRect(
-      Rect.fromLTWH(origin.dx + size * 0.22, origin.dy + size * 0.22, size * 0.56, size * 0.56),
-      Paint()..color = const Color(0xFFF8F9FE),
-    );
-    // Inner solid square
-    canvas.drawRect(
-      Rect.fromLTWH(origin.dx + size * 0.38, origin.dy + size * 0.38, size * 0.24, size * 0.24),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

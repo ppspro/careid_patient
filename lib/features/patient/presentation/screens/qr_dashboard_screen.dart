@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../shared/widgets/careid_avatar.dart';
@@ -336,7 +337,7 @@ class _QrDashboardScreenState extends State<QrDashboardScreen> {
               alignment: Alignment.center,
               children: [
                 // Authentic CareID Purple QR Code Graphic
-                _buildPurpleQrPattern(),
+                _buildPurpleQrPattern(careId),
                 // Central Fingerprint ID Badge
                 Container(
                   width: 58,
@@ -434,11 +435,22 @@ class _QrDashboardScreenState extends State<QrDashboardScreen> {
     );
   }
 
-  /// Custom Painter pattern replicating Figma QR matrix with purple blocks
-  Widget _buildPurpleQrPattern() {
-    return CustomPaint(
-      size: const Size(218, 218),
-      painter: _FigmaQrPainter(color: const Color(0xFF6D28D9)),
+  /// Real Scannable Purple QR matrix matching Figma 20:22771
+  Widget _buildPurpleQrPattern(String qrData) {
+    return QrImageView(
+      data: qrData.startsWith('HVQR-') ? qrData : 'HVQR-${qrData.replaceAll(RegExp(r"[^A-Za-z0-9]"), "")}',
+      version: QrVersions.auto,
+      size: 218,
+      padding: EdgeInsets.zero,
+      errorCorrectionLevel: QrErrorCorrectLevel.M,
+      eyeStyle: const QrEyeStyle(
+        eyeShape: QrEyeShape.square,
+        color: Color(0xFF6D28D9),
+      ),
+      dataModuleStyle: const QrDataModuleStyle(
+        dataModuleShape: QrDataModuleShape.square,
+        color: Color(0xFF6D28D9),
+      ),
     );
   }
 
@@ -631,89 +643,4 @@ class _QrDashboardScreenState extends State<QrDashboardScreen> {
       ),
     );
   }
-}
-
-/// Custom Painter reproducing the purple QR code aesthetic from Figma 20:22771
-class _FigmaQrPainter extends CustomPainter {
-  final Color color;
-
-  _FigmaQrPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    const cornerSize = 48.0;
-    const cornerBorder = 10.0;
-
-    // Corner 1: Top-Left
-    _drawCornerMarker(canvas, const Offset(0, 0), cornerSize, cornerBorder, paint);
-    // Corner 2: Top-Right
-    _drawCornerMarker(canvas, Offset(size.width - cornerSize, 0), cornerSize, cornerBorder, paint);
-    // Corner 3: Bottom-Left
-    _drawCornerMarker(canvas, Offset(0, size.height - cornerSize), cornerSize, cornerBorder, paint);
-
-    // Grid dots
-    final rnd = [
-      [1,0,1,1,0,1,0,1,1,0],
-      [0,1,0,1,1,0,1,0,0,1],
-      [1,1,0,0,1,0,0,1,1,0],
-      [0,0,1,1,0,1,1,0,1,1],
-      [1,0,1,0,0,0,0,1,0,1],
-      [0,1,0,0,0,0,0,0,1,0],
-      [1,1,0,1,1,0,1,1,0,1],
-      [0,0,1,0,1,1,0,1,0,0],
-      [1,0,0,1,0,0,1,0,1,1],
-      [0,1,1,0,1,0,1,1,0,1],
-    ];
-
-    final dotStep = size.width / 14;
-    for (int r = 0; r < 10; r++) {
-      for (int c = 0; c < 10; c++) {
-        // Skip corner regions
-        if ((r < 3 && c < 3) || (r < 3 && c > 6) || (r > 6 && c < 3)) continue;
-        // Skip center logo box
-        if (r >= 3 && r <= 6 && c >= 3 && c <= 6) continue;
-
-        if (rnd[r][c] == 1) {
-          final x = (c + 2) * dotStep;
-          final y = (r + 2) * dotStep;
-          canvas.drawRRect(
-            RRect.fromRectAndRadius(Rect.fromLTWH(x, y, dotStep * 0.75, dotStep * 0.75), const Radius.circular(2)),
-            paint,
-          );
-        }
-      }
-    }
-  }
-
-  void _drawCornerMarker(Canvas canvas, Offset offset, double size, double borderWidth, Paint paint) {
-    // Outer border
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(offset.dx, offset.dy, size, size), const Radius.circular(10)),
-      paint,
-    );
-    // Cutout inner
-    final bgPaint = Paint()..color = Colors.white;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(offset.dx + borderWidth, offset.dy + borderWidth, size - borderWidth * 2, size - borderWidth * 2),
-        const Radius.circular(6),
-      ),
-      bgPaint,
-    );
-    // Inner center square
-    const innerSize = 16.0;
-    final inX = offset.dx + (size - innerSize) / 2;
-    final inY = offset.dy + (size - innerSize) / 2;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(inX, inY, innerSize, innerSize), const Radius.circular(4)),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

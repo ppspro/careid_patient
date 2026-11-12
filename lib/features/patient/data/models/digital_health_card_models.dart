@@ -136,3 +136,87 @@ class SharedAccessGrantDto {
   };
 }
 
+/// Enterprise QR Subsystem DTO
+/// Grounded in `POST /api/v1/qr`, `GET /api/v1/qr`, and `POST /api/v1/qr/verify`
+class EnterpriseQrDto {
+  final String id;
+  final String token;
+  final String entityId;
+  final String entityType;
+  final String ownerId;
+  final String status;
+  final String? signature;
+  final String? issuedAt;
+  final String? expiresAt;
+
+  const EnterpriseQrDto({
+    required this.id,
+    required this.token,
+    required this.entityId,
+    required this.entityType,
+    required this.ownerId,
+    required this.status,
+    this.signature,
+    this.issuedAt,
+    this.expiresAt,
+  });
+
+  factory EnterpriseQrDto.fromJson(Map<String, dynamic> json) {
+    return EnterpriseQrDto(
+      id: json['id']?.toString() ?? '',
+      token: json['token']?.toString() ?? '',
+      entityId: json['entityId']?.toString() ?? '',
+      entityType: json['entityType']?.toString() ?? 'HEALTH_CARD',
+      ownerId: json['ownerId']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'ACTIVE',
+      signature: json['signature']?.toString(),
+      issuedAt: json['issuedAt']?.toString(),
+      expiresAt: json['expiresAt']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'token': token,
+    'entityId': entityId,
+    'entityType': entityType,
+    'ownerId': ownerId,
+    'status': status,
+    if (signature != null) 'signature': signature,
+    if (issuedAt != null) 'issuedAt': issuedAt,
+    if (expiresAt != null) 'expiresAt': expiresAt,
+  };
+}
+
+/// Universal Canonical QR Contract Payload
+/// Supported across all CareID Doctor, Patient, and Web applications
+class UniversalCardQrPayload {
+  final String version;
+  final String type;
+  final String token;
+  final String cardNumber;
+  final String? patientId;
+  final String? issuedAt;
+  final String? expiresAt;
+
+  const UniversalCardQrPayload({
+    this.version = '1.0',
+    this.type = 'CAREID_HEALTH_CARD',
+    required this.token,
+    required this.cardNumber,
+    this.patientId,
+    this.issuedAt,
+    this.expiresAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'v': version,
+    'type': type,
+    'token': token,
+    'cardNumber': cardNumber,
+    if (patientId != null) 'patientId': patientId,
+    if (issuedAt != null) 'issuedAt': issuedAt,
+    if (expiresAt != null) 'expiresAt': expiresAt,
+  };
+}
+

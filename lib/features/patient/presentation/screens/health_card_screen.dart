@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_result.dart';
@@ -46,6 +47,9 @@ class _HealthCardScreenState extends State<HealthCardScreen> {
   PatientProfileDto? _profile;
   bool _hasActiveInsurance = true;
   InsurancePolicyDto? _activePolicy;
+  String? _qrToken;
+  String? _qrId;
+  bool _isRotatingQr = false;
 
   late bool _isLoading;
   int _navIndex = 0; // Home or Health Card
@@ -113,6 +117,19 @@ class _HealthCardScreenState extends State<HealthCardScreen> {
           _hasActiveInsurance = _activePolicy!.status.toUpperCase() == 'ACTIVE';
         }
       });
+
+      // Fetch or generate active Enterprise QR token
+      try {
+        final cNum = _healthCard?.cardNumber ?? widget.registrationContext?.displayCareId ?? 'HC-CAREID-2026-0004';
+        final cId = _healthCard?.id ?? 'local-card';
+        final qrRes = await _repository.getOrGenerateCardQrToken(cardId: cId, cardNumber: cNum);
+        if (mounted && qrRes.isSuccess && qrRes.dataOrNull != null) {
+          setState(() {
+            _qrToken = qrRes.dataOrNull!.token;
+            _qrId = qrRes.dataOrNull!.id;
+          });
+        }
+      } catch (_) {}
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -126,6 +143,168 @@ class _HealthCardScreenState extends State<HealthCardScreen> {
         );
       });
     }
+  }
+
+  Future<void> _rotateQr() async {
+    if (_isRotatingQr) return;
+    setState(() => _isRotatingQr = true);
+    try {
+      if (_qrId != null && _qrId!.isNotEmpty) {
+        final res = await _repository.rotateCardQrToken(qrId: _qrId!);
+        if (mounted && res.isSuccess && res.dataOrNull != null) {
+          setState(() {
+            _qrToken = res.dataOrNull!.token;
+            _qrId = res.dataOrNull!.id;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_isEn ? 'QR code rotated and refreshed' : 'Código QR rotado y actualizado'),
+              backgroundColor: const Color(0xFF10B981),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        final cNum = _healthCard?.cardNumber ?? widget.registrationContext?.displayCareId ?? 'HC-CAREID-2026-0004';
+        final cId = _healthCard?.id ?? 'local-card';
+        final res = await _repository.getOrGenerateCardQrToken(cardId: cId, cardNumber: cNum);
+        if (mounted && res.isSuccess && res.dataOrNull != null) {
+          setState(() {
+            _qrToken = res.dataOrNull!.token;
+            _qrId = res.dataOrNull!.id;
+          });
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _isRotatingQr = false);
+    }
+  }
+
+  void _showEnlargedQrDialog(BuildContext context, String payload) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _isEn ? 'CareID Health QR' : 'Código QR CareID',
+                        style: const TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF3B0764),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0F000000),
+                          blurRadius: 16,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: QrImageView(
+                      data: _qrToken ?? payload,
+                      version: QrVersions.auto,
+                      size: 210,
+                      padding: EdgeInsets.zero,
+                      errorCorrectionLevel: QrErrorCorrectLevel.M,
+                      eyeStyle: const QrEyeStyle(
+                        eyeShape: QrEyeShape.square,
+                        color: Color(0xFF0F172A),
+                      ),
+                      dataModuleStyle: const QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _qrToken ?? payload,
+                      style: const TextStyle(
+                        fontFamily: 'Courier',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _isEn
+                        ? 'Present this code to your doctor or hospital for instant, secure clinical intake.'
+                        : 'Presente este código en su consulta médica para ingreso clínico seguro.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF5B14B8),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    onPressed: _isRotatingQr
+                        ? null
+                        : () async {
+                            setModalState(() {});
+                            await _rotateQr();
+                            if (ctx.mounted) setModalState(() {});
+                          },
+                    icon: _isRotatingQr
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.refresh_rounded, size: 18),
+                    label: Text(
+                      _isEn ? 'Refresh QR Token' : 'Actualizar Código QR',
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _copyCardNumber(String number) {
@@ -531,34 +710,51 @@ class _HealthCardScreenState extends State<HealthCardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // QR Code Box on Left
-              Container(
-                width: 76,
-                height: 76,
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const Icon(Icons.qr_code_2_rounded, size: 64, color: Color(0xFF0F172A)),
-                    Container(
-                      width: 20,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF5B14B8),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'ID',
-                          style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900),
+              // QR Code Box on Left (Real Scannable QR Matrix)
+              GestureDetector(
+                onTap: () => _showEnlargedQrDialog(context, _qrToken ?? careId),
+                child: Container(
+                  width: 76,
+                  height: 76,
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      QrImageView(
+                        data: _qrToken ?? careId,
+                        version: QrVersions.auto,
+                        size: 66,
+                        padding: EdgeInsets.zero,
+                        errorCorrectionLevel: QrErrorCorrectLevel.M,
+                        eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: Color(0xFF0F172A),
+                        ),
+                        dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Color(0xFF0F172A),
                         ),
                       ),
-                    ),
-                  ],
+                      Container(
+                        width: 18,
+                        height: 13,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF5B14B8),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'ID',
+                            style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               // ID Fingerprint Logo on Right

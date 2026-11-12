@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_result.dart';
@@ -64,13 +65,156 @@ class DigitalHealthCardRepository {
     );
   }
 
-  /// Verifies a digital Health Card QR payload
-  /// POST /api/v1/health-cards/verify-qr
+  /// Retrieves active Enterprise QR token or generates one
+  /// GET /api/v1/qr or POST /api/v1/qr
+  Future<ApiResult<EnterpriseQrDto>> getOrGenerateCardQrToken({
+    required String cardId,
+    required String cardNumber,
+  }) async {
+    // 1. Check existing active QR tokens
+    try {
+      final listResult = await _apiClient.get<List<EnterpriseQrDto>>(
+        ApiEndpoints.qrTokens,
+        requiresAuth: true,
+        fromJson: (json) {
+          if (json is List) {
+            return json
+                .map((e) => EnterpriseQrDto.fromJson(e is Map<String, dynamic> ? e : {}))
+                .where((e) => e.status == 'ACTIVE')
+                .toList();
+          }
+          return [];
+        },
+      );
+
+      if (listResult.isSuccess && listResult.dataOrNull != null && listResult.dataOrNull!.isNotEmpty) {
+        final activeTokens = listResult.dataOrNull!;
+        final match = activeTokens.firstWhere(
+          (e) => e.entityType == 'HEALTH_CARD' && (e.entityId == cardNumber || e.entityId == cardId),
+          orElse: () => activeTokens.firstWhere(
+            (e) => e.entityType == 'HEALTH_CARD',
+            orElse: () => activeTokens.first,
+          ),
+        );
+        return ApiSuccess(data: match);
+      }
+    } catch (_) {}
+
+    // 2. Generate new QR token: POST /api/v1/qr
+    return _apiClient.post<EnterpriseQrDto>(
+      ApiEndpoints.qrTokens,
+      requiresAuth: true,
+      body: {
+        'entityType': 'HEALTH_CARD',
+        'entityId': cardNumber,
+      },
+      fromJson: (json) {
+        if (json is Map<String, dynamic>) {
+          return EnterpriseQrDto.fromJson(json);
+        }
+        return EnterpriseQrDto(
+          id: '',
+          token: cardNumber,
+          entityId: cardNumber,
+          entityType: 'HEALTH_CARD',
+          ownerId: '',
+          status: 'ACTIVE',
+        );
+      },
+    );
+  }
+
+  /// Rotates an active Enterprise QR token
+  /// POST /api/v1/qr/:id/rotate
+  Future<ApiResult<EnterpriseQrDto>> rotateCardQrToken({required String qrId}) async {
+    return _apiClient.post<EnterpriseQrDto>(
+      '${ApiEndpoints.qrTokens}/$qrId/rotate',
+      requiresAuth: true,
+      body: {'reason': 'Patient requested QR rotation'},
+      fromJson: (json) {
+        if (json is Map<String, dynamic>) {
+          return EnterpriseQrDto.fromJson(json);
+        }
+        return const EnterpriseQrDto(
+          id: '',
+          token: '',
+          entityId: '',
+          entityType: 'HEALTH_CARD',
+          ownerId: '',
+          status: 'ACTIVE',
+        );
+      },
+    );
+  }
+
+  /// Verifies a digital Health Card QR payload with dual verification support:
+  /// Primary: POST /api/v1/health-cards/verify-qr
+  /// Fallback / Enterprise: POST /api/v1/qr/verify
   Future<ApiResult<VerifyQrResponseDto>> verifyQrPayload(String qrPayload) async {
+    String candidateToken = qrPayload.trim();
+    String? candidateCardNumber;
+
+    if (candidateToken.startsWith('{') && candidateToken.endsWith('}')) {
+      try {
+        final decoded = jsonDecode(candidateToken) as Map<String, dynamic>;
+        if (decoded.containsKey('token')) candidateToken = decoded['token']?.toString() ?? candidateToken;
+        if (decoded.containsKey('cardNumber')) candidateCardNumber = decoded['cardNumber']?.toString();
+      } catch (_) {}
+    } else if (candidateToken.startsWith('HC-') || candidateToken.startsWith('HV360-') || candidateToken.startsWith('CID-')) {
+      candidateCardNumber = candidateToken;
+    }
+
+    // Step 1: If it's a card number or canonical JSON with card number, try /health-cards/verify-qr
+    if (candidateCardNumber != null) {
+      final cardRes = await _apiClient.post<VerifyQrResponseDto>(
+        ApiEndpoints.healthCardsVerifyQr,
+        requiresAuth: true,
+        body: {'qrPayload': candidateCardNumber},
+        fromJson: (json) {
+          if (json is Map<String, dynamic>) {
+            return VerifyQrResponseDto.fromJson(json);
+          }
+          return const VerifyQrResponseDto(isValid: false, message: 'Invalid card format');
+        },
+      );
+      if (cardRes.isSuccess && (cardRes.dataOrNull?.isValid == true)) {
+        return cardRes;
+      }
+    }
+
+    // Step 2: Try Enterprise QR Subsystem: POST /api/v1/qr/verify
+    final qrRes = await _apiClient.post<VerifyQrResponseDto>(
+      ApiEndpoints.qrVerify,
+      requiresAuth: true,
+      body: {
+        'token': candidateToken,
+        'deviceInfo': 'CareID Patient App',
+        'location': 'Client Scan',
+      },
+      fromJson: (json) {
+        if (json is Map<String, dynamic>) {
+          final isValid = json['isValid'] == true || json['status'] == 'VALID';
+          return VerifyQrResponseDto(
+            isValid: isValid,
+            cardNumber: json['entityId']?.toString(),
+            patientNumber: json['ownerId']?.toString(),
+            verificationStatus: json['status']?.toString() ?? (isValid ? 'VERIFIED' : 'INVALID'),
+            message: json['failureReason']?.toString(),
+          );
+        }
+        return const VerifyQrResponseDto(isValid: false, message: 'Invalid token format');
+      },
+    );
+
+    if (qrRes.isSuccess && (qrRes.dataOrNull?.isValid == true)) {
+      return qrRes;
+    }
+
+    // Fallback: Default card verify with raw payload
     return _apiClient.post<VerifyQrResponseDto>(
       ApiEndpoints.healthCardsVerifyQr,
       requiresAuth: true,
-      body: {'qrPayload': qrPayload},
+      body: {'qrPayload': qrPayload.trim()},
       fromJson: (json) {
         if (json is Map<String, dynamic>) {
           return VerifyQrResponseDto.fromJson(json);

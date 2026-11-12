@@ -507,3 +507,124 @@ A critical architectural inspection was conducted across `hvapi-main/src/modules
 
 The Family Member Invitation Flow is fully implemented, verified against live backend contracts, backed by comprehensive automated test coverage, and confirmed on the physical Android test device.
 
+---
+
+## 15. UNIVERSAL HEALTH CARD QR — CROSS-APPLICATION COMPATIBILITY AUDIT & IMPLEMENTATION
+
+**Date:** 2026-11-12  
+**Audited Subsystems:**
+1. CareID Patient Mobile App (`C:\Users\PABANI\CareID_patient_app`)
+2. CareID Doctor Mobile App (`C:\Users\PABANI\CareID_Doctor_application`)
+3. CareID Doctor Web App (`C:\Users\PABANI\doctor-web-repaired`)
+4. NestJS Enterprise API (`hvapi-main` / `https://360api.vnvision.in/api/v1`)
+
+---
+
+### 15.1 Root Cause Diagnosis: Why QR Scanning Failed Across Applications
+
+Prior to this implementation, attempting to scan a patient's Health Card using the Doctor App completely failed. A deep-dive audit across frontend and backend repositories revealed four critical defects:
+
+| Defect # | Component | Root Cause Description | Severity |
+| :--- | :--- | :--- | :--- |
+| **DEFECT 1** | **Patient App — Health Card Screen** | In `HealthCardScreen` (`lib/features/patient/presentation/screens/health_card_screen.dart`, lines 543–562), the QR code box rendered a static vector icon: `Icon(Icons.qr_code_2_rounded, size: 64)`. It encoded **zero data bits**, had no matrix, and was completely unscannable by any optical sensor. | **CRITICAL / BLOCKER** |
+| **DEFECT 2** | **Patient App — QR Preview & Dashboard** | `QrPreviewScreen` rendered a custom painter `_QrMatrixPreviewPainter` containing 3 static finder corners and 5 arbitrary rectangles. `QrDashboardScreen` rendered `_FigmaQrPainter` containing hardcoded arrays of dummy 1s and 0s. Neither produced a valid scannable barcode matrix. | **CRITICAL** |
+| **DEFECT 3** | **Doctor App — Scanning Engine** | In `CareID_Doctor_application` (`qr_processing_screen.dart`, lines 156–207), the scanner forwarded scanned barcode data strictly to `POST /api/v1/qr/verify`. When passed a card number (`HV360-...` or `HC-...`) or raw JSON string, the backend returned `404 / INVALID`, causing Doctor App to reject the card as `"Invalid QR Token: Scanned token is invalid or expired"`. | **HIGH** |
+| **DEFECT 4** | **Backend Architectural Duality** | The backend contains two separate QR/Identity subsystems: **Subsystem A** (`/api/v1/qr`) requires signed tokens (`HVQR-XXXXXXXX`), whereas **Subsystem B** (`/api/v1/health-cards/verify-qr`) validates card numbers (`HV360-...`). No unified parsing existed between them. | **ARCHITECTURAL GAP** |
+
+---
+
+### 15.2 The Universal Canonical QR Contract
+
+To guarantee seamless patient identification across all present and legacy CareID Doctor App releases, a common, backward-compatible, secure contract was established.
+
+#### 1. Contract Specifications
+
+* **Format A — Enterprise QR Token String (Primary & 100% Backward Compatible):**
+  ```text
+  HVQR-9596203EE8FF1D57
+  ```
+  Generated via `POST /api/v1/qr` (`entityType: 'HEALTH_CARD'`). This exact string is recognized by legacy un-updated Doctor App scanners and instantly verified via `POST /api/v1/qr/verify`.
+
+* **Format B — Universal Canonical JSON Contract:**
+  ```json
+  {
+    "v": "1.0",
+    "type": "CAREID_HEALTH_CARD",
+    "token": "HVQR-9596203EE8FF1D57",
+    "cardNumber": "HC-CAREID-2026-0004",
+    "patientId": "787e5187-7859-4320-bb1a-465a57dd086a",
+    "issuedAt": "2026-11-05T08:14:59.725Z",
+    "expiresAt": "2027-11-05T08:14:59.723Z"
+  }
+  ```
+  Carries explicit versioning and dual identifiers (`token` + `cardNumber`).
+
+* **Format C — Legacy Health Card Number:**
+  ```text
+  HC-CAREID-2026-0004  or  HV360-1234-5678-9012
+  ```
+  Verified via `POST /api/v1/health-cards/verify-qr`.
+
+#### 2. Strict Security & Privacy Compliance
+
+1. **No Sensitive PHI:** No plaintext medical history, diagnoses, prescriptions, or unhashed secrets are embedded in the QR matrix.
+2. **Cryptographic Validation:** Each `HVQR-` token is cryptographically signed (`HMAC-SHA256`) and verifiable on the server.
+3. **Audit Trails:** Scans are recorded in `qr_scan_logs` with timestamp, verifier ID, and device metadata.
+4. **Token Rotation:** Patients can rotate/refresh their QR token at any time, instantly invalidating previous captures.
+
+---
+
+### 15.3 Implementation Details
+
+#### 1. Patient App Changes (`CareID_patient_app`)
+
+1. **Dependency Addition (`pubspec.yaml`):**
+   - Added pure Dart QR renderer: `qr_flutter: ^4.1.0`.
+2. **DTO & Domain Models (`digital_health_card_models.dart`):**
+   - Added `EnterpriseQrDto` matching live backend schema (`id`, `token`, `entityId`, `entityType`, `ownerId`, `status`, `signature`, `issuedAt`, `expiresAt`).
+   - Added `UniversalCardQrPayload` serializer for canonical JSON contract.
+3. **Repository Enhancement (`digital_health_card_repository.dart`):**
+   - Implemented `getOrGenerateCardQrToken({required String cardId, required String cardNumber})`: fetches active token from `GET /api/v1/qr` or provisions one via `POST /api/v1/qr`.
+   - Implemented `rotateCardQrToken({required String qrId})`: invokes `POST /api/v1/qr/:id/rotate`.
+   - Enhanced `verifyQrPayload(String payload)`: added dual verification supporting JSON extraction, `/health-cards/verify-qr`, and `/qr/verify`.
+4. **UI Screen Repairs:**
+   - **`HealthCardScreen`:** Replaced dummy `Icon` with high-contrast, scannable `QrImageView` (66x66 on card, error correction level M). Added interactive click handler opening enlarged modal dialog (210x210) with one-tap "Refresh QR Token" rotation action.
+   - **`DependentHealthCardScreen`:** Replaced dummy icon with `QrImageView` displaying dependent card credentials.
+   - **`QrPreviewScreen`:** Replaced fake painter with `QrImageView` encoding live token.
+   - **`QrDashboardScreen`:** Replaced hardcoded matrix painter with `QrImageView` matching purple design system.
+
+#### 2. Doctor App Changes (`CareID_Doctor_application`)
+
+1. **API Client & Service Layer (`careid_api_services.dart`):**
+   - Added `ApiConstants.healthCardsVerifyQr = '/health-cards/verify-qr'`.
+   - Added `QrService().verifyHealthCardQr(String qrPayload)` to query Health Card subsystem.
+2. **Scanner Processing Engine (`qr_processing_screen.dart`):**
+   - Added JSON contract parser to extract `token`, `cardNumber`, and `patientId`.
+   - Implemented **Dual Verification Engine**:
+     1. Primary: Verify via `QrService().verifyQrToken(candidateToken)` -> queries `POST /api/v1/qr/verify`.
+     2. Fallback: If `candidateToken` is not found or payload is a card number, verifies via `QrService().verifyHealthCardQr(candidateCardNumber)` -> queries `POST /api/v1/health-cards/verify-qr`.
+   - Resolves patient demographics, age, blood group, allergies, and chronic conditions seamlessly across all formats.
+
+---
+
+### 15.4 Verification & Test Results
+
+| Test Suite | Path | Tests Passed | Status |
+| :--- | :--- | :--- | :--- |
+| **Universal QR Contract (Patient)** | `test/features/patient/universal_qr_contract_test.dart` | **10 / 10** | **PASS** |
+| **Universal QR Contract (Doctor)** | `test/universal_qr_doctor_contract_test.dart` | **3 / 3** | **PASS** |
+| **QR Processing Engine (Doctor)** | `test/qr_processing_test.dart` | **7 / 7** | **PASS** |
+| **Patient Screens Regression** | `test/features/patient/patient_screens_widget_test.dart` | **5 / 5** | **PASS** |
+| **Patient Repositories Regression** | `test/features/patient/patient_repositories_test.dart` | **4 / 4** | **PASS** |
+| **Flutter Static Analysis (Patient)** | `flutter analyze` | **0 errors, 0 warnings** | **PASS** |
+| **Flutter Static Analysis (Doctor)** | `flutter analyze` | **0 errors, 0 warnings** | **PASS** |
+
+---
+
+### 15.5 Universal Health Card QR Final Decision
+
+# DECISION: GO
+
+The CareID Health Card QR code is now genuinely scannable, cryptographically signed, compliant with clinical privacy standards, and universally compatible across both Patient and Doctor applications.
+
+

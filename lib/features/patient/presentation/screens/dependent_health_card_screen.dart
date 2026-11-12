@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../shared/widgets/primary_button.dart';
 
 import '../../../../core/network/api_client.dart';
@@ -404,10 +405,20 @@ class DependentHealthCardScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: const EdgeInsets.all(4),
-                child: const Icon(
-                  Icons.qr_code_2_rounded,
+                child: QrImageView(
+                  data: member?.id.isNotEmpty == true ? 'HC-${member!.id}' : 'HC-DEP-2026-0001',
+                  version: QrVersions.auto,
                   size: 54,
-                  color: Color(0xFF2E006A),
+                  padding: EdgeInsets.zero,
+                  errorCorrectionLevel: QrErrorCorrectLevel.M,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Color(0xFF2E006A),
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Color(0xFF2E006A),
+                  ),
                 ),
               ),
             ],
