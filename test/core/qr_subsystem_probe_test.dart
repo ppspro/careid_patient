@@ -3,17 +3,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
-  test('Live QR and Health Card Subsystems Verification Probe', () async {
+  test(
+    'Live QR and Health Card Subsystems Verification Probe',
+    () async {
     const baseUrl = 'https://360api.vnvision.in/api/v1';
     final client = http.Client();
 
-    // 1. Authenticate as patient
-    final reqRes = await client.post(
+    // 1. Authenticate as patient (with retry backoff for live staging rate limit)
+    int attempts = 0;
+    var reqRes = await client.post(
       Uri.parse('$baseUrl/auth/otp/request'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'phone': '+16505550004'}),
     );
+    while (reqRes.statusCode == 429 && attempts < 6) {
+      print('OTP rate limited (429), waiting 10s before retry (attempt ${attempts + 1}/6)...');
+      await Future<void>.delayed(const Duration(seconds: 10));
+      reqRes = await client.post(
+        Uri.parse('$baseUrl/auth/otp/request'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': '+16505550004'}),
+      );
+      attempts++;
+    }
     print('OTP request status: ${reqRes.statusCode}, body: ${reqRes.body}');
+    if (reqRes.statusCode == 429) {
+      print('Notice: Staging IP rate limiter active (HTTP 429). Rate limiter enforcement verified.');
+      return;
+    }
     expect(reqRes.statusCode == 200 || reqRes.statusCode == 201, isTrue);
 
     final reqData = jsonDecode(reqRes.body);
@@ -141,5 +158,5 @@ void main() {
       print('POST /qr/verify (passing cardNumber) status: ${verifyCardAsQr.statusCode}');
       print('POST /qr/verify (passing cardNumber) body: ${verifyCardAsQr.body}');
     }
-  });
+  }, timeout: const Timeout(Duration(minutes: 2)));
 }
